@@ -23,7 +23,7 @@ from fastapi.templating import Jinja2Templates
 from .database import DB_PATH, DOCTOR_IMAGE_DIR, UPLOAD_DIR, audit, connection, hash_password, initialize_database, now_iso, reset_database, verify_password
 from .model_provider import ImageValidationError, MODEL_ID, provider, validate_image_bytes
 from .real_models import real_provider
-from .eye_summary import summarize_eyes
+from .eye_summary import summarize_eyes, partition_images
 from .role_databases import DOCTOR_DB_PATH, TECHNICIAN_DB_PATH, initialize_role_databases, role_connection, sync_doctor_directory
 from .synthetic_models import GRADE_NAMES, synthetic_provider
 from .advisory import suggest_surgery_date
@@ -321,7 +321,8 @@ def case_detail(request: Request, case_id: str):
         for item in images:
             item["analysis"] = json.loads(item["analysis_json"]) if item["analysis_json"] else None
     analysis = json.loads(row["analysis_json"]) if row["analysis_json"] else None
-    return render(request, 'case_detail.html', page='cases', case=row, history=history, analysis=analysis, images=images,
+    current_images,older_images=partition_images(images,analysis)
+    return render(request, 'case_detail.html', page='cases', case=row, history=history, analysis=analysis, images=current_images, older_images=older_images,
                   eye_summary=summarize_eyes(images, analysis))
 
 
@@ -518,15 +519,23 @@ def submit_leave(request: Request, leave_date: str = Form(...), leave_type: str 
 
 
 @app.post("/doctor/review/{case_id}/suggestion", response_class=HTMLResponse)
-def surgery_suggestion(request: Request, case_id: str, csrf: str = Form(...)):
+def surgery_suggestion(request: Request, case_id: str, csrf: str = Form(...),
+    clinical_context_submitted: str = Form(""), symptoms: str = Form("",max_length=20000), notes: str = Form("",max_length=20000)):
     user = require_user(request, "doctor"); verify_csrf(request, csrf); require_assignment(user, case_id)
     with connection() as con:
         row = _case(con, case_id)
+        if clinical_context_submitted=="1":
+            con.execute("UPDATE cases SET symptoms=?,notes=? WHERE case_id=?",(symptoms.strip(),notes.strip(),case_id))
+            audit(con,user["u"],user["r"],"clinical_context_updated",case_id,"Doctor updated reported symptoms and clinical notes for advisory planning; image uploads unchanged.")
+            row=_case(con,case_id)
         analysis = json.loads(row["analysis_json"]) if row["analysis_json"] else None
+        images=[dict(item) for item in con.execute("SELECT id,eye_side,analysis_json FROM case_images WHERE case_id=?",(case_id,))]
+        summary=summarize_eyes(images,analysis)
+        analysis={**(analysis or {}),"eye_findings":[{key:item[key] for key in ("side","status","cataract_signal")} for item in summary["entries"]]}
         suggestion = suggest_surgery_date(row, analysis, con, user["u"])
         capacity = con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone()
         surgery = con.execute("SELECT * FROM surgeries WHERE case_id=?", (case_id,)).fetchone()
-        audit(con,user["u"],user["r"],"surgery_date_suggested",case_id,f"provider={suggestion['provider']}; advisory_date={suggestion['suggested_date']}")
+        audit(con,user["u"],user["r"],"surgery_date_suggested",case_id,f"provider={suggestion['provider']}; advisory_date={suggestion['suggested_date']}; clinical_hold={suggestion.get('clinical_hold',False)}; inputs=reported_symptoms,clinical_notes; raw_notes_sent=false")
     return render(request,"clinical_review.html",page="review",case=row,analysis=analysis,reviewer=user,surgery=surgery,capacity=capacity,suggestion=suggestion,booking_error=None)
 
 
@@ -578,6 +587,9 @@ async def registered_intake(request: Request, case_id: str = Form(...), modality
     with connection() as con:
         _case(con,case_id)
         con.execute("UPDATE cases SET modality=?,symptoms=?,notes=?,status='awaiting_review' WHERE case_id=?",(modality,symptoms.strip(),notes.strip(),case_id))
+        if not prepared:
+            empty={"status":"not_run","observation_group":observation_group}
+            con.execute("UPDATE cases SET eye='Not recorded',image_path=NULL,image_sha256=NULL,analysis_status='not_run',analysis_json=? WHERE case_id=?",(json.dumps(empty),case_id))
         for eye,payload,ext,result in prepared:
             target=UPLOAD_DIR/(uuid4().hex+"."+ext); file_store.write(target,payload)
             relative=str(target.relative_to(APP_DIR)).replace(chr(92),"/")
@@ -592,7 +604,11 @@ async def registered_intake(request: Request, case_id: str = Form(...), modality
 
 
 def _sync_case_eye(con, case_id: str):
-    sides={row[0] for row in con.execute("SELECT DISTINCT eye_side FROM case_images WHERE case_id=?",(case_id,))}
+    row=con.execute("SELECT analysis_json FROM cases WHERE case_id=?",(case_id,)).fetchone()
+    analysis=json.loads(row[0]) if row and row[0] else None
+    images=[dict(item) for item in con.execute("SELECT id,eye_side,analysis_json FROM case_images WHERE case_id=?",(case_id,))]
+    current,_=partition_images(images,analysis)
+    sides={item["eye_side"] for item in current}
     label="Both" if {"Left","Right"} <= sides else next(iter(sides)) if len(sides)==1 else "Not recorded"
     con.execute("UPDATE cases SET eye=? WHERE case_id=?",(label,case_id))
 

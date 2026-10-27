@@ -4,21 +4,28 @@ from __future__ import annotations
 import json
 
 
+def partition_images(images: list[dict], current_analysis: dict | None) -> tuple[list[dict], list[dict]]:
+    batch=(current_analysis or {}).get("observation_group")
+    ordered=sorted(images,key=lambda item:item.get("id",0),reverse=True)
+    if batch:
+        current=[item for item in ordered if (item.get("analysis") or json.loads(item.get("analysis_json") or "{}")).get("observation_group")==batch]
+    else:
+        # No visit identifier exists for legacy records. Never combine different
+        # eye labels from different visits into a current bilateral assessment.
+        current=ordered[:1]
+    identifiers={item.get("id") for item in current}
+    return current,[item for item in ordered if item.get("id") not in identifiers]
+
+
 def summarize_eyes(images: list[dict], current_analysis: dict | None) -> dict:
     batch = (current_analysis or {}).get("observation_group")
+    images,_=partition_images(images,current_analysis)
     records = []
     for image in images:
         result = image.get("analysis") or json.loads(image.get("analysis_json") or "{}")
         if batch and result.get("observation_group") != batch:
             continue
         records.append({**image, "analysis": result})
-    # Legacy uploads have no encounter identifier: use only the most recent
-    # image for each label, and explicitly explain the possible date difference.
-    if not batch:
-        latest = {}
-        for record in sorted(records, key=lambda item: item.get("id", 0), reverse=True):
-            latest.setdefault(record["eye_side"], record)
-        records = list(latest.values())
     entries = []
     for side, label in (("Left", "Left eye"), ("Right", "Right eye"), ("Not recorded", "Eye side unknown"), ("Both", "Eye side not individually labelled")):
         group = [item for item in records if item["eye_side"] == side]
@@ -52,4 +59,4 @@ def summarize_eyes(images: list[dict], current_analysis: dict | None) -> dict:
     if not any(item["analysis"].get("status") == "ok" for item in records):
         headline = "No usable image prediction is available."
     return {"entries": entries, "headline": headline,
-            "scope": "Results from this intake only. Earlier images remain in the history." if batch else "Latest image per eye label; these may come from different visits. Check image dates."}
+            "scope": "Results from this upload round only. Earlier uploads are listed separately." if batch else "Latest image only; older records have no reliable upload-round identifier."}

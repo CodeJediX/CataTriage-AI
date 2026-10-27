@@ -1,7 +1,11 @@
 [
   {
     "path": "deployment/demo_app/advisory.py",
-    "sha256": "3b18bda8d40bccf40b309d3ec8fe57412c995cb29c2d41ddf86b80eed0240899"
+    "sha256": "5f9289e07023c4b7aade7287cb2a7b771aafa7ebe83c8de9ab25cfdd611e14d1"
+  },
+  {
+    "path": "deployment/demo_app/clinical_planning.py",
+    "sha256": "ab7f283e0693a7ce698c24a26b725dbb44d34e883efaf9ea2dce7127bfd82a65"
   },
   {
     "path": "deployment/demo_app/cloud_database.py",
@@ -17,7 +21,7 @@
   },
   {
     "path": "deployment/demo_app/eye_summary.py",
-    "sha256": "6ac0b34fc03945d6094fc42df3dc1ae8ac903878024f8a5a7ce40c0f6745b3c7"
+    "sha256": "10a202af571ef78723d738d36b8110a50e68be233e61748ce8f4c13b3c20e518"
   },
   {
     "path": "deployment/demo_app/file_store.py",
@@ -33,7 +37,7 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "b365f0c362ac487ad826967a4e789a5c983140ea6bbbdd74911bc26f7f746e9c"
+    "sha256": "600b5dcfef8f38d4fdd8ff84e7ee62a3e9cca0b006bb5311331ade605bfe4066"
   },
   {
     "path": "deployment/demo_app/model_provider.py",
@@ -85,7 +89,7 @@
   },
   {
     "path": "deployment/demo_app/static/hospital.css",
-    "sha256": "e89a8066816482840a110aa25dc488d730510c46d0c93d989fb7f3ca236cdd9a"
+    "sha256": "a716243c2f8a989d3a603764fa053679314f5ad732753f642496d74201a1c4a4"
   },
   {
     "path": "deployment/demo_app/static/responsive.css",
@@ -109,7 +113,7 @@
   },
   {
     "path": "deployment/demo_app/templates/base.html",
-    "sha256": "4140d9758a5bef743803434f60c8ccfce13dff022136e13fa1ed3553e59837be"
+    "sha256": "d58aafd26c158aaf8c49dd28a3dab3aa9f2c4655b6a9783a47e6375196743356"
   },
   {
     "path": "deployment/demo_app/templates/calendar.html",
@@ -121,11 +125,11 @@
   },
   {
     "path": "deployment/demo_app/templates/case_detail.html",
-    "sha256": "c9413b0db8fdfac836ae378f7d512dba75972df8338269373569e5840825096a"
+    "sha256": "9c29eb63e00b79cba52d26b77f7daea64102b7a18d532048c52e61d957bdc9cb"
   },
   {
     "path": "deployment/demo_app/templates/clinical_review.html",
-    "sha256": "8d179a06725da56cadcfe2a1f1705e19d99b022bcfde16e2f25530f63afd09fe"
+    "sha256": "ead77a7ffde3f88acf3cd2c8caa79f7c2d21c89bae8587c5dc7bfa42b0af5f37"
   },
   {
     "path": "deployment/demo_app/templates/doctor.html",
@@ -142,6 +146,10 @@
   {
     "path": "deployment/demo_app/templates/error.html",
     "sha256": "04e29ae9f8c5cf2d595859e58bb4a4d9fdf054dd2a0b7c301c82436fa30aa6de"
+  },
+  {
+    "path": "deployment/demo_app/templates/image_card.html",
+    "sha256": "210fd5dd471f6fb3dce3444f7e99ec80bf318c3ecf34804d9e9856d1ec80be8d"
   },
   {
     "path": "deployment/demo_app/templates/intake.html",
