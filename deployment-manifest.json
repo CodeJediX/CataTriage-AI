@@ -1,7 +1,7 @@
 [
   {
     "path": "deployment/demo_app/advisory.py",
-    "sha256": "30cd79dacd38cf810fee2ad035d818414ea8d24537e2d4a78c1e3b8a8c052c00"
+    "sha256": "3b18bda8d40bccf40b309d3ec8fe57412c995cb29c2d41ddf86b80eed0240899"
   },
   {
     "path": "deployment/demo_app/database.py",
@@ -21,7 +21,7 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "22c0dbec80979ad6c7da92e0e2d6cf05c7564ead07a72143b4b9e89a170d295a"
+    "sha256": "aad53f09e451a3e964197dd551cf2ae6cde4461a822db15c9e9eaf35310c0612"
   },
   {
     "path": "deployment/demo_app/model_provider.py",
@@ -89,7 +89,7 @@
   },
   {
     "path": "deployment/demo_app/templates/base.html",
-    "sha256": "b8ba216a1491e0e7e6333a86fb963a6129aa8e9f05b7871c88ecae79ce6a82c7"
+    "sha256": "12d159bd80fbd74975ae2f8a43dfd94da17d9e927b5f97f12b7c95d5f8423ff0"
   },
   {
     "path": "deployment/demo_app/templates/calendar.html",
@@ -101,11 +101,11 @@
   },
   {
     "path": "deployment/demo_app/templates/case_detail.html",
-    "sha256": "3eea7ef79b4a2d6aa86bf1368a7785edfbcc618be4fefb15172c1f9f1ec6a5bb"
+    "sha256": "c9413b0db8fdfac836ae378f7d512dba75972df8338269373569e5840825096a"
   },
   {
     "path": "deployment/demo_app/templates/clinical_review.html",
-    "sha256": "05d72144306a01861db60b148566a7ad3fecbd2b89e5687bf632349ede63319e"
+    "sha256": "8d179a06725da56cadcfe2a1f1705e19d99b022bcfde16e2f25530f63afd09fe"
   },
   {
     "path": "deployment/demo_app/templates/doctor.html",

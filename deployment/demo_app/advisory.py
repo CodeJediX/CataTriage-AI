@@ -174,6 +174,7 @@ def suggest_surgery_date(case, analysis, con, doctor: str) -> dict:
         waiting = max(0, (date.today()-date.fromisoformat(case["waiting_since"][:10])).days)
         points.append(f"Waiting time: this patient has been on the list for {waiting} days. Review any change in symptoms before confirming.")
         times = selected.get("available_times", [])
+        result["suggested_time"] = times[0] if times else None
         points.append("Doctor availability: the assigned doctor's working schedule and recorded leave were checked." + (" Available check times: " + ", ".join(times) + "." if times else ""))
         booked, capacity = selected["booked"], selected["capacity"]
         limit = selected.get("effective_capacity", capacity)

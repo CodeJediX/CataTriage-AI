@@ -122,7 +122,7 @@ def render(request: Request, name: str, **context) -> HTMLResponse:
     response_status = int(context.pop("response_status", 200))
     response = templates.TemplateResponse(request, name, {"user": read_session(request), "csrf": csrf, "today": date.today(),
         "google_enabled":google_enabled(), "google_pending":request.query_params.get("google_status")=="pending",
-        "hosted":os.getenv("CATATRIAGE_HOSTED")=="true", **context}, status_code=response_status)
+        "hosted":os.getenv("CATATRIAGE_HOSTED")=="true", "ephemeral":os.getenv("CATATRIAGE_EPHEMERAL")=="true", **context}, status_code=response_status)
     if not request.cookies.get("catatriage_csrf"):
         response.set_cookie("catatriage_csrf", csrf, httponly=True, samesite="strict", secure=request.url.scheme=="https")
     response.headers["Cache-Control"] = "no-store"

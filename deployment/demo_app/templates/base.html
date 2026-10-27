@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/responsive.css">
   <link rel="stylesheet" href="/static/app-extra.css">
   <link rel="stylesheet" href="/static/simulation.css">
-  <link rel="stylesheet" href="/static/hospital.css">
+  <link rel="stylesheet" href="/static/hospital.css?v=20261027-eyes">
   <script src="/static/app.js" defer></script>
 </head>
 <body class="{% if not user %}auth-body{% endif %}">
@@ -39,7 +39,7 @@
 </aside>
 {% endif %}
 <main class="{{ 'shell' if user else 'auth-shell' }}">
-  {% if hosted %}<div class="notice hosted-notice"><strong>Free education demo.</strong> Records and uploads reset when this service restarts or sleeps. Use fictional patient information.</div>{% endif %}
+  {% if hosted %}<div class="notice hosted-notice"><strong>Free education demo.</strong> {% if ephemeral %}Records and uploads reset when this service restarts or sleeps.{% else %}This link is available while the host computer and public tunnel are running.{% endif %} Use fictional patient information.</div>{% endif %}
   {% if user %}<div class="safety-strip"><strong>RESEARCH PROTOTYPE</strong><span>Models use public retrospective research datasets. Demo cases stay fictional. Not for diagnosis, treatment, or patient care.</span></div>{% endif %}
   {% block content %}{% endblock %}
 </main>
