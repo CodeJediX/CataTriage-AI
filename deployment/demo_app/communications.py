@@ -12,6 +12,7 @@ import urllib.parse
 import urllib.request
 from email.message import EmailMessage
 from pathlib import Path
+from . import firebase_mail
 
 
 def valid_email(value):
@@ -40,6 +41,7 @@ def _secret_value(name):
 
 
 def send_credentials(email,username,password):
+    if firebase_mail.api_key(): return firebase_mail.send_setup(email,username)
     sender=os.getenv("ADMIN_EMAIL","pamindu39@gmail.com").strip()
     if not valid_email(email) or not valid_email(sender):
         return {"status":"failed","detail":"A valid sender and doctor email are required."}
@@ -71,7 +73,11 @@ def send_credentials(email,username,password):
 
 
 def email_ready():
-    return bool(_secret_value("GMAIL_OAUTH_JSON") or _secret_value("GMAIL_APP_PASSWORD"))
+    return bool(firebase_mail.api_key() or _secret_value("GMAIL_OAUTH_JSON") or _secret_value("GMAIL_APP_PASSWORD"))
+
+
+def email_provider():
+    return 'Firebase password-setup email' if firebase_mail.api_key() else 'Gmail'
 
 
 def surgery_message(name,day,slot):

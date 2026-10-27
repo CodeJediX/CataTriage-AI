@@ -33,7 +33,7 @@ from .google_auth import enabled as google_enabled, router as google_router
 from .settings import load_local_config, advisory_settings
 from agents.workflow import run_workflow
 from . import cloud_database, file_store
-from . import account_security, communications
+from . import account_security, communications, account_management, firebase_mail
 from .cloud_uploads import router as upload_router, restore as restore_uploads
 
 APP_DIR = Path(__file__).resolve().parent
@@ -159,6 +159,7 @@ def render(request: Request, name: str, **context) -> HTMLResponse:
     csrf = ensure_csrf(request)
     response_status = int(context.pop("response_status", 200))
     response = templates.TemplateResponse(request, name, {"user": read_session(request), "csrf": csrf, "today": date.today(),
+        "auth_page":request.url.path.startswith('/login'),
         "google_enabled":google_enabled(), "google_pending":request.query_params.get("google_status")=="pending",
         "hosted":os.getenv("CATATRIAGE_HOSTED")=="true", "ephemeral":os.getenv("CATATRIAGE_EPHEMERAL")=="true",
         "cloud_database":cloud_database.enabled(), **context}, status_code=response_status)
@@ -220,8 +221,22 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         if account_security.blocked(con,key): return render(request,"login.html",next_path=next_path,error="Too many attempts. Try again in 15 minutes.",portal=portal or None,response_status=429)
         row = con.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
         security=account_security.state(con,username)
-        profile=con.execute("SELECT is_active FROM doctor_profiles WHERE username=?",(username,)).fetchone() if row and row["role"]=="doctor" else None
-        if not row or not verify_password(password, row["password_hash"]) or (portal and row["role"] != portal) or (profile and not profile[0]) or (security["must_change"] and security["temporary_expires"]<time.time()):
+        profile=con.execute("SELECT is_active,email FROM doctor_profiles WHERE username=?",(username,)).fetchone() if row and row["role"]=="doctor" else None
+        password_ok=bool(row and verify_password(password,row['password_hash']))
+        if row and profile and profile[0] and profile['email'] and firebase_mail.api_key() and (security['firebase_linked'] or (security['firebase_pending'] and not password_ok)):
+            try:
+                firebase_mail.verify_login(profile['email'],password,username)
+                if not password_ok or security['firebase_pending'] or security['must_change']:
+                    con.execute('UPDATE users SET password_hash=? WHERE username=?',(hash_password(password),username))
+                    account_security.changed(con,username,temporary=len(password.strip())<12)
+                    con.execute('UPDATE account_security SET firebase_linked=1,firebase_pending=0 WHERE username=?',(username,))
+                    security=account_security.state(con,username)
+                password_ok=True
+            except firebase_mail.MailError as exc:
+                account_security.failed(con,key)
+                detail='Open the Firebase verification email, verify your address, then sign in again.' if str(exc)=='EMAIL_VERIFICATION_REQUIRED' else 'The email sign-in could not be verified. Check your password or try again later.'
+                return render(request,'login.html',next_path=next_path,error=detail,portal=portal or 'doctor',login_username=username)
+        if not row or not password_ok or (portal and row["role"] != portal) or (profile and not profile[0]) or (security["must_change"] and security["temporary_expires"]<time.time()):
             account_security.failed(con,key)
             return render(request, "login.html", next_path=next_path, error="Those credentials do not match this role portal.", portal=portal or None)
         con.execute("DELETE FROM authentication_attempts WHERE attempt_key=?",(key,))
@@ -248,11 +263,14 @@ def change_doctor_password(request: Request,username:str=Form(...,max_length=80)
         con.execute("BEGIN IMMEDIATE")
         key=account_security.attempt_key(request,username)
         if account_security.blocked(con,key): return render(request,"password_change.html",error="Too many attempts. Try again in 15 minutes.",success=False,response_status=429)
-        row=con.execute("SELECT u.* FROM users u JOIN doctor_profiles d USING(username) WHERE u.username=? AND u.role='doctor' AND d.is_active=1",(username,)).fetchone()
+        row=con.execute("SELECT u.*,d.email FROM users u JOIN doctor_profiles d USING(username) WHERE u.username=? AND u.role='doctor' AND d.is_active=1",(username,)).fetchone()
         security=account_security.state(con,username)
         if not row or not verify_password(current_password,row["password_hash"]) or (security["must_change"] and security["temporary_expires"]<time.time()):
             account_security.failed(con,key)
             return render(request,"password_change.html",error="The current credentials could not be verified. Expired temporary passwords require a new login email from the admin.",success=False,response_status=400)
+        if security['firebase_linked']:
+            try: firebase_mail.change_password(row['email'],current_password,new_password)
+            except firebase_mail.MailError: return render(request,'password_change.html',error='The email account could not be updated. Sign in with your latest emailed password setup first, or try again later. Your application password has not changed.',success=False,response_status=400)
         con.execute("UPDATE users SET password_hash=? WHERE username=?",(hash_password(new_password),username))
         account_security.changed(con,username)
         con.execute("DELETE FROM authentication_attempts WHERE attempt_key=?",(key,))
@@ -275,10 +293,10 @@ def overview(request: Request):
     if not read_session(request):
         return redirect_login("/")
     with connection() as con:
-        counts = dict(con.execute("SELECT status,COUNT(*) n FROM cases GROUP BY status").fetchall())
-        tiers = {r[0] or "Pending": r[1] for r in con.execute("SELECT approved_tier,COUNT(*) FROM cases GROUP BY approved_tier")}
-        cases = con.execute("SELECT *, CAST(julianday('now')-julianday(waiting_since) AS INTEGER) wait_days FROM cases ORDER BY wait_days DESC LIMIT 7").fetchall()
-        appointments = con.execute("SELECT a.*,c.patient_alias FROM appointments a JOIN cases c USING(case_id) ORDER BY scheduled_date LIMIT 5").fetchall()
+        counts = dict(con.execute("SELECT status,COUNT(*) n FROM cases WHERE is_archived=0 GROUP BY status").fetchall())
+        tiers = {r[0] or "Pending": r[1] for r in con.execute("SELECT approved_tier,COUNT(*) FROM cases WHERE is_archived=0 GROUP BY approved_tier")}
+        cases = con.execute("SELECT *, CAST(julianday('now')-julianday(waiting_since) AS INTEGER) wait_days FROM cases WHERE is_archived=0 ORDER BY wait_days DESC LIMIT 7").fetchall()
+        appointments = con.execute("SELECT a.*,c.patient_alias FROM appointments a JOIN cases c USING(case_id) WHERE c.is_archived=0 ORDER BY scheduled_date LIMIT 5").fetchall()
     return render(request, "overview.html", page="overview", counts=counts, tiers=tiers, cases=cases, appointments=appointments)
 
 
@@ -286,7 +304,7 @@ def overview(request: Request):
 def cases_page(request: Request, q: str = "", modality: str = "", tier: str = "", status: str = ""):
     if not read_session(request):
         return redirect_login("/cases")
-    clauses, params = [], []
+    clauses, params = ["is_archived=0"], []
     if q:
         clauses.append("(case_id LIKE ? OR patient_alias LIKE ?)"); params += [f"%{q}%", f"%{q}%"]
     if modality:
@@ -308,6 +326,8 @@ def new_case_page(request: Request):
         return redirect_login("/cases/new")
     with role_connection(DOCTOR_DB_PATH) as con:
         patients = con.execute('SELECT * FROM patient_profiles WHERE doctor_username=? ORDER BY full_name', (user['u'],)).fetchall() if user['r']=='doctor' else con.execute('SELECT * FROM patient_profiles ORDER BY full_name').fetchall()
+    active=_active_case_ids()
+    patients=[patient for patient in patients if patient['case_id'] in active]
     return render(request, 'intake.html', page='new', patients=patients)
 
 
@@ -357,6 +377,10 @@ async def new_case(
             audit(con, user["u"], user["r"], "image_upload", case_id, f"Stored validated {image_meta['format']} image as generated filename; sha256={image_hash}.")
             audit(con, user["u"], user["r"], "model_inference" if analysis.get("status") == "ok" else "model_not_available", case_id, f"status={analysis['status']}; model={analysis.get('model_id','none')}; urgency=null")
     return RedirectResponse(f"/cases/{case_id}", status_code=303)
+
+
+def _active_case_ids():
+    with connection() as con: return {row[0] for row in con.execute('SELECT case_id FROM cases WHERE is_archived=0')}
 
 
 def _case(con, case_id: str):
@@ -460,6 +484,10 @@ def doctor_dashboard(request: Request, q: str = "", scope: str = "mine", message
         leaves = con.execute("SELECT * FROM leave_requests WHERE doctor_username=? ORDER BY leave_date DESC", (user["u"],)).fetchall()
         inbox=con.execute("SELECT * FROM staff_messages WHERE recipient=? ORDER BY id DESC LIMIT 4",(user["u"],)).fetchall()
         unread=con.execute("SELECT COUNT(*) FROM staff_messages WHERE recipient=? AND read_at IS NULL",(user["u"],)).fetchone()[0]
+    active=_active_case_ids()
+    patients=[p for p in patients if p['case_id'] in active]
+    with connection() as con: active_doctors={row[0] for row in con.execute('SELECT username FROM doctor_profiles WHERE is_active=1')}
+    directory=[d for d in directory if d['username'] in active_doctors]
     ids = {p["case_id"] for p in patients}
     appointments = [a for a in appointments if a["case_id"] in ids]
     assessments = [a for a in assessments if a["case_id"] in ids]
@@ -486,6 +514,8 @@ def mailbox(request:Request,box:str="inbox"):
                 messages.append({**dict(row),"id":None,"sender":user["u"],"recipient":row["case_id"],"subject":"Surgery Appointment Confirmation","category":"surgery","read_at":"outbound","delivery_channel":"whatsapp"})
     with role_connection(DOCTOR_DB_PATH) as con:
         patients=[dict(row) for row in con.execute("SELECT * FROM patient_profiles WHERE doctor_username=? ORDER BY full_name",(user["u"],))] if user["r"]=="doctor" else []
+        active=_active_case_ids()
+        patients=[patient for patient in patients if patient['case_id'] in active]
         if user["r"]=="doctor":
             legacy=con.execute(f"SELECT * FROM messages WHERE {column}=? ORDER BY id DESC LIMIT 100",(user["u"],)).fetchall()
             assigned={patient["case_id"] for patient in patients}
@@ -778,7 +808,7 @@ def admin_dashboard(request: Request):
         if exc.status_code == 401: return redirect_login("/admin")
         raise
     with connection() as con:
-        doctors = [dict(row) for row in con.execute("SELECT d.*,s.email_status,s.email_detail FROM doctor_profiles d LEFT JOIN account_security s USING(username) ORDER BY display_name")]
+        doctors = [dict(row) for row in con.execute("SELECT d.*,s.email_status,s.email_detail FROM doctor_profiles d LEFT JOIN account_security s USING(username) WHERE d.is_active=1 ORDER BY display_name")]
         leaves = [dict(row) for row in con.execute("SELECT l.*,d.display_name FROM leave_requests l JOIN doctor_profiles d ON d.username=l.doctor_username ORDER BY CASE l.status WHEN 'pending' THEN 0 ELSE 1 END,l.leave_date")]
         capacity = dict(con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone())
         google_requests = con.execute("SELECT * FROM google_access_requests ORDER BY requested_at DESC").fetchall()
@@ -787,6 +817,9 @@ def admin_dashboard(request: Request):
     with role_connection(DOCTOR_DB_PATH) as con:
         counts = {row[0]: row[1] for row in con.execute("SELECT doctor_username,COUNT(*) FROM patient_profiles GROUP BY doctor_username")}
         patients = [dict(row) for row in con.execute("SELECT * FROM patient_profiles ORDER BY full_name")]
+    active=_active_case_ids()
+    patients=[patient for patient in patients if patient['case_id'] in active]
+    counts={doctor['username']:sum(p['doctor_username']==doctor['username'] for p in patients) for doctor in doctors}
     today_leave = {item["doctor_username"] for item in leaves if item["leave_date"] == date.today().isoformat() and item["status"] in {"pending", "approved", "resolved"} and item["leave_type"]=="full_day"}
     for doctor in doctors:
         doctor["patient_count"] = int(counts.get(doctor["username"], 0))
@@ -797,7 +830,7 @@ def admin_dashboard(request: Request):
             for event in leave["affected"]:
                 event["alternatives"] = [d for d in doctors if d["username"] != leave["doctor_username"] and doctor_available(con,d["username"],leave["leave_date"],event["slot"])]
     return render(request, "admin.html", page="admin", doctors=doctors, patients=patients, leaves=leaves, capacity=capacity,
-                  surgeries=surgeries, google_requests=google_requests, pending_leave=next((item for item in leaves if item["status"] == "pending"), None),account_status=request.query_params.get("account_status",""),email_ready=communications.email_ready(),admin_email=os.getenv("ADMIN_EMAIL","pamindu39@gmail.com"))
+                  surgeries=surgeries, google_requests=google_requests, pending_leave=next((item for item in leaves if item["status"] == "pending"), None),account_status=request.query_params.get("account_status",""),email_ready=communications.email_ready(),email_provider=communications.email_provider(),admin_email=os.getenv("ADMIN_EMAIL","pamindu39@gmail.com"))
 
 
 @app.post("/admin/doctors")
@@ -866,9 +899,68 @@ async def admin_save_doctor(
     return RedirectResponse("/admin?account_status="+quote(status), status_code=303)
 
 
+@app.get('/admin/accounts',response_class=HTMLResponse)
+def manage_accounts(request:Request):
+    require_user(request,'admin')
+    with connection() as con:
+        store=account_management.doctor_store(con,DOCTOR_DB_PATH)
+        patients=[dict(row) for row in con.execute(f'SELECT p.*,c.age,c.status FROM {store}.patient_profiles p JOIN cases c USING(case_id) WHERE c.is_archived=0 ORDER BY p.full_name')]
+        doctors=[dict(row) for row in con.execute('SELECT * FROM doctor_profiles WHERE is_active=1 ORDER BY display_name')]
+        deleted=[dict(row) for row in con.execute('SELECT * FROM account_archives WHERE restored_at IS NULL ORDER BY archived_at DESC')]
+    for doctor in doctors: doctor['patient_count']=sum(p['doctor_username']==doctor['username'] for p in patients)
+    return render(request,'account_management.html',page='accounts',patients=patients,doctors=doctors,deleted=deleted,status=request.query_params.get('status',''))
+
+
+@app.post('/admin/patients/{case_id}/edit')
+def edit_patient(request:Request,case_id:str,full_name:str=Form(...,min_length=3,max_length=150),age:int=Form(...,ge=1,le=110),phone:str=Form(...,min_length=8,max_length=30),email:str=Form('',max_length=254),address:str=Form(...,min_length=1,max_length=1000),doctor_username:str=Form(...),csrf:str=Form(...)):
+    user=require_user(request,'admin'); verify_csrf(request,csrf)
+    if not full_name.strip() or not address.strip() or (email and not communications.valid_email(email)): raise HTTPException(400,'Enter a valid patient name, address and email.')
+    with connection() as con:
+        store=account_management.doctor_store(con,DOCTOR_DB_PATH)
+        con.execute('BEGIN IMMEDIATE')
+        row=con.execute(f'SELECT p.doctor_username,c.is_archived FROM {store}.patient_profiles p JOIN cases c USING(case_id) WHERE p.case_id=?',(case_id,)).fetchone()
+        if not row or row['is_archived']: raise HTTPException(404,'Active patient not found.')
+        if row['doctor_username']!=doctor_username: account_management.validate_transfer(con,case_id,doctor_username)
+        elif not con.execute('SELECT 1 FROM doctor_profiles WHERE username=? AND is_active=1',(doctor_username,)).fetchone(): raise HTTPException(400,'Choose an active doctor.')
+        con.execute('UPDATE cases SET patient_alias=?,age=? WHERE case_id=?',(full_name.strip(),age,case_id))
+        con.execute(f'UPDATE {store}.patient_profiles SET full_name=?,phone=?,email=?,address=?,doctor_username=? WHERE case_id=?',(full_name.strip(),phone.strip(),email.strip().lower(),address.strip(),doctor_username,case_id))
+        audit(con,user['u'],user['r'],'patient_profile_updated',case_id,f'Demographics updated; assigned doctor={doctor_username}; clinical approval unchanged.')
+    return RedirectResponse('/admin/accounts?status=Patient%20updated.',status_code=303)
+
+
+@app.post('/admin/accounts/{kind}/{key}/delete')
+def delete_account(request:Request,kind:str,key:str,csrf:str=Form(...),reassign_to:str=Form('')):
+    user=require_user(request,'admin'); verify_csrf(request,csrf)
+    with connection() as con:
+        store=account_management.doctor_store(con,DOCTOR_DB_PATH)
+        con.execute('BEGIN IMMEDIATE')
+        if kind=='patient': account_management.delete_patient(con,key,user['u'])
+        elif kind=='doctor': account_management.delete_doctor(con,store,key,reassign_to,user['u'])
+        else: raise HTTPException(400,'Choose a patient or doctor account.')
+        audit(con,user['u'],user['r'],'account_deleted',key if kind=='patient' else None,f'type={kind}; key={key}; reversible deletion; audit and medical history retained.')
+    return RedirectResponse('/admin/accounts?status=Deleted%20from%20active%20records.%20Restore%20is%20available%20below.',status_code=303)
+
+
+@app.post('/admin/accounts/{kind}/{key}/restore')
+def restore_account(request:Request,kind:str,key:str,csrf:str=Form(...),doctor_username:str=Form('')):
+    user=require_user(request,'admin'); verify_csrf(request,csrf)
+    with connection() as con:
+        store=account_management.doctor_store(con,DOCTOR_DB_PATH)
+        con.execute('BEGIN IMMEDIATE')
+        if kind=='patient':
+            patient=con.execute(f'SELECT doctor_username FROM {store}.patient_profiles WHERE case_id=?',(key,)).fetchone()
+            selected=doctor_username or (patient[0] if patient else '')
+            account_management.validate_transfer(con,key,selected)
+            con.execute(f'UPDATE {store}.patient_profiles SET doctor_username=? WHERE case_id=?',(selected,key))
+        account_management.restore(con,kind,key)
+        audit(con,user['u'],user['r'],'account_restored',key if kind=='patient' else None,f'type={kind}; key={key}; cancelled bookings were not reinstated.')
+    return RedirectResponse('/admin/accounts?status=Record%20restored.%20Review%20and%20rebook%20cancelled%20appointments%20if%20needed.',status_code=303)
+
+
 def _record_login_email(username,delivery,admin):
     with connection() as con:
         con.execute("INSERT OR IGNORE INTO account_security(username) VALUES(?)",(username,))
+        if delivery.get('password_setup') and delivery['status']=='accepted': con.execute('UPDATE account_security SET firebase_pending=1 WHERE username=?',(username,))
         con.execute("UPDATE account_security SET email_status=?,email_detail=?,last_emailed_at=? WHERE username=?",(delivery["status"],delivery["detail"],now_iso(),username))
         audit(con,admin["u"],admin["r"],"doctor_login_email",None,f"doctor={username}; status={delivery['status']}; credentials excluded from audit")
 
@@ -876,14 +968,14 @@ def _record_login_email(username,delivery,admin):
 @app.post("/admin/doctors/{username}/login-email")
 def resend_doctor_login(request:Request,username:str,csrf:str=Form(...)):
     user=require_user(request,"admin"); verify_csrf(request,csrf)
-    if not communications.email_ready(): raise HTTPException(503,"Connect the admin Gmail sender before issuing a new temporary password. Existing login credentials have not changed.")
+    if not communications.email_ready(): return RedirectResponse('/admin?account_status='+quote('Email sending is not connected. Existing login credentials have not changed.'),status_code=303)
     password=communications.temporary_password()
     with connection() as con:
         profile=con.execute("SELECT * FROM doctor_profiles WHERE username=? AND is_active=1",(username,)).fetchone()
         if not profile or not communications.valid_email(profile["email"]): raise HTTPException(400,"Save a valid registered doctor email before sending new login credentials.")
         previous=con.execute("SELECT password_hash FROM users WHERE username=?",(username,)).fetchone()[0]
     delivery=communications.send_credentials(profile["email"],username,password)
-    if delivery["status"]=="accepted":
+    if delivery["status"]=="accepted" and not delivery.get('password_setup'):
         with connection() as con:
             con.execute("BEGIN IMMEDIATE")
             changed=con.execute("UPDATE users SET password_hash=? WHERE username=? AND password_hash=?",(hash_password(password),username,previous))
@@ -1011,7 +1103,7 @@ def queue_page(request: Request, tier: str = "", status: str = ""):
     except HTTPException as exc:
         if exc.status_code == 401: return redirect_login("/queue")
         raise
-    clauses = ["approved_tier IS NOT NULL"]; params = []
+    clauses = ["approved_tier IS NOT NULL","c.is_archived=0"]; params = []
     if tier: clauses.append("approved_tier=?"); params.append(tier)
     if status: clauses.append("status=?"); params.append(status)
     with connection() as con:
@@ -1049,8 +1141,8 @@ def calendar_page(request: Request, kind: str = "meeting", month: str = ""):
     try: first=date.fromisoformat((month or date.today().strftime("%Y-%m"))+"-01")
     except ValueError: raise HTTPException(400,"Use a valid calendar month.")
     with connection() as con:
-        meetings=[dict(r) for r in con.execute("SELECT a.*,c.patient_alias,c.approved_tier FROM appointments a JOIN cases c USING(case_id) ORDER BY scheduled_date,slot")]
-        surgeries=[dict(r) for r in con.execute("SELECT s.*,s.surgery_date scheduled_date,c.patient_alias,c.approved_tier FROM surgeries s JOIN cases c USING(case_id) WHERE s.status='confirmed' ORDER BY surgery_date,slot")]
+        meetings=[dict(r) for r in con.execute("SELECT a.*,c.patient_alias,c.approved_tier FROM appointments a JOIN cases c USING(case_id) WHERE c.is_archived=0 ORDER BY scheduled_date,slot")]
+        surgeries=[dict(r) for r in con.execute("SELECT s.*,s.surgery_date scheduled_date,c.patient_alias,c.approved_tier FROM surgeries s JOIN cases c USING(case_id) WHERE s.status='confirmed' AND c.is_archived=0 ORDER BY surgery_date,slot")]
         capacity=con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone()
         token=request.query_params.get("confirmation","")
         notice=con.execute("SELECT * FROM outbound_notifications WHERE confirmation_token=? AND doctor_username=?",(token,user["u"])).fetchone() if token else None

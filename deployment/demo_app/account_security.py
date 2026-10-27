@@ -5,7 +5,7 @@ import time
 
 def state(con,username):
     row=con.execute("SELECT * FROM account_security WHERE username=?",(username,)).fetchone()
-    return dict(row) if row else {"password_epoch":0,"must_change":0,"temporary_expires":0}
+    return dict(row) if row else {"password_epoch":0,"must_change":0,"temporary_expires":0,"firebase_linked":0,"firebase_pending":0}
 
 
 def attempt_key(request,username):
@@ -30,3 +30,8 @@ def changed(con,username,temporary=False):
     con.execute("""INSERT INTO account_security(username,password_epoch,must_change,temporary_expires) VALUES(?,1,?,?)
         ON CONFLICT(username) DO UPDATE SET password_epoch=account_security.password_epoch+1,must_change=excluded.must_change,temporary_expires=excluded.temporary_expires""",
         (username,int(temporary),int(time.time())+86400 if temporary else 0))
+
+
+def invalidate_sessions(con,username):
+    con.execute("""INSERT INTO account_security(username,password_epoch) VALUES(?,1)
+        ON CONFLICT(username) DO UPDATE SET password_epoch=account_security.password_epoch+1""",(username,))

@@ -1,29 +1,10 @@
-{% extends "base.html" %}{% block title %}Demo sign in — CataTriage-AI{% endblock %}
+{% extends "base.html" %}{% block title %}Sign in — CataTriage AI{% endblock %}
 {% block content %}
-<section class="login-wrap">
-  <div class="login-copy">
-    <span class="eyebrow">Competition research prototype</span>
-    <h1>A safer view of the ophthalmology queue.</h1>
-    <p>CataTriage brings eye image analysis, clinician review, approved priorities, capacity and evidence into one research workflow.</p>
-    <div class="boundary"><strong>Research scope</strong> The trained models use real public datasets. They provide image screening and tabular grade predictions for education; a doctor reviews findings and selects priority.</div>
-  </div>
-  {% if not portal %}<div class="portal-grid">
-    <a class="portal-card" href="/login/doctor"><b>01</b><strong>Doctor</strong><span>Patients, reports, messages, AI evidence and review.</span></a>
-    <a class="portal-card" href="/login/admin"><b>02</b><strong>Hospital admin</strong><span>Approved queue, capacity, scheduling and audit.</span></a>
-    <a class="portal-card" href="/login/technician"><b>03</b><strong>Technician / support</strong><span>Registration, structured entry and capture quality.</span></a>
-  </div>{% else %}<form class="login-card" action="/login" method="post">
-    <div class="brand login-brand"><span class="brand-mark">CT</span><span>CataTriage<small>{{ 'Hosted research demo' if cloud_database else 'Local demonstration' }}</small></span></div>
-    <h2>{{ portal|title }} portal</h2><p>{{ 'Enter the private hosted demo credentials.' if hosted else 'Use the fictional '+portal+' account below.' }}</p>
-    {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
-    <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="next_path" value="{{ next_path }}"><input type="hidden" name="portal" value="{{ portal }}">
-    <label>Username<input name="username" autocomplete="username" required value="{{ 'dr.maya' if portal=='doctor' else ('admin.nila' if portal=='admin' else 'tech.alex') }}"></label>
-    <label>Password<input name="password" type="password" autocomplete="current-password" required value="{{ '' if hosted else ('demo-doctor' if portal=='doctor' else ('demo-admin' if portal=='admin' else 'demo-tech')) }}"></label>
-    <button class="button primary" type="submit">Open dashboard</button>
-    {% if portal=='doctor' %}<a class="button secondary" href="/login/doctor/password">Change password</a>{% endif %}
-    {% if portal=='doctor' %}{% if google_enabled %}<a class="button secondary" href="/auth/google">Sign in / request access with Google</a>{% else %}<div class="integration-note">Google sign-in is ready for hospital OAuth configuration.</div>{% endif %}{% if google_pending %}<div class="notice">Your Google access request was received. The hospital admin must link it to a registered doctor before sign-in.</div>{% endif %}{% endif %}
-    {% if not hosted %}<div class="credentials"><strong>Demo access</strong> {{ 'dr.maya / demo-doctor' if portal=='doctor' else ('admin.nila / demo-admin' if portal=='admin' else 'tech.alex / demo-tech') }}</div>{% endif %}
-    <a href="/login">← Choose another role</a>
-    <small>Passwords are stored as salted PBKDF2 hashes.</small>
-  </form>{% endif %}
-</section>
-{% endblock %}
+<section class="login-wrap identity-layout">
+<div class="login-copy"><a href="/login" class="logo-plaque" aria-label="CataTriage AI home"><img src="/static/catatriage-logo.png" alt="CataTriage AI" width="1254" height="1254"></a><span class="eyebrow">A connected vision of care</span><h1>Clarity for every<br> <span>next step.</span></h1><p>Imaging, clinical review and hospital coordination. One focused workspace for your care team.</p><div class="identity-principle"><i></i><span>AI-supported imaging. Clinician-led decisions.</span></div><button class="motion-toggle" type="button" data-motion-toggle aria-pressed="false">Pause animation</button></div>
+{% if not portal %}<section class="access-panel"><span class="eyebrow">Your workspace awaits</span><h2>Choose your portal</h2><p>Sign in with your hospital account.</p><div class="portal-grid"><a class="portal-card" href="/login/doctor"><b>01</b><span><strong>Doctor</strong><small>Patients, imaging, reports &amp; messages</small></span><em aria-hidden="true">↗</em></a><a class="portal-card" href="/login/admin"><b>02</b><span><strong>Hospital admin</strong><small>People, scheduling &amp; hospital operations</small></span><em aria-hidden="true">↗</em></a><a class="portal-card" href="/login/technician"><b>03</b><span><strong>Technician / support</strong><small>Registration, capture &amp; data quality</small></span><em aria-hidden="true">↗</em></a></div><p class="access-footer">Secure access for each role.<br>Clinical findings remain subject to doctor review.</p></section>
+{% else %}<form class="login-card" action="/login" method="post"><span class="identity-role">{{ portal|replace('technician','Technician / support')|title }} portal</span><h2>Welcome back.</h2><p>Enter your account details to continue.</p>{% if error %}<div class="alert error">{{ error }}</div>{% endif %}<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="next_path" value="{{ next_path }}"><input type="hidden" name="portal" value="{{ portal }}">
+<label>Username<input name="username" autocomplete="username" required value="{{ login_username if login_username is defined else (request.query_params.get('username') or ('dr.maya' if portal=='doctor' else ('admin.nila' if portal=='admin' else 'tech.alex'))) }}"></label>
+<label>Password<input name="password" type="password" autocomplete="current-password" required value="{{ '' if hosted else ('demo-doctor' if portal=='doctor' else ('demo-admin' if portal=='admin' else 'demo-tech')) }}"></label>
+<button class="button primary" type="submit">Open dashboard</button>{% if portal=='doctor' %}<a class="button secondary" href="/login/doctor/password">Change password</a>{% endif %}{% if portal=='doctor' and google_enabled %}<a class="button secondary" href="/auth/google">Continue with Google</a>{% endif %}{% if google_pending %}<div class="notice">Your Google access request was received. The hospital admin must link it to a registered doctor before sign-in.</div>{% endif %}{% if not hosted %}<div class="credentials"><strong>Local test access</strong> {{ 'dr.maya / demo-doctor' if portal=='doctor' else ('admin.nila / demo-admin' if portal=='admin' else 'tech.alex / demo-tech') }}</div>{% endif %}<a class="back-to-portals" href="/login">← Choose another role</a><small>Protected access · passwords are stored as salted hashes.</small></form>{% endif %}
+</section>{% endblock %}

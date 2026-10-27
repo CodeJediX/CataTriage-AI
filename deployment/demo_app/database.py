@@ -62,6 +62,11 @@ def connection(db_path: Path | str = DB_PATH):
 
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS account_archives(
+ entity_type TEXT NOT NULL, entity_key TEXT NOT NULL, archived_by TEXT NOT NULL,
+ archived_at TEXT NOT NULL, previous_state TEXT NOT NULL DEFAULT '{}', restored_at TEXT,
+ PRIMARY KEY(entity_type,entity_key)
+);
 CREATE TABLE IF NOT EXISTS account_security(
  username TEXT PRIMARY KEY REFERENCES users(username) ON DELETE CASCADE,
  password_epoch INTEGER NOT NULL DEFAULT 0, must_change INTEGER NOT NULL DEFAULT 0,
@@ -241,6 +246,11 @@ def initialize_database(db_path: Path | str = DB_PATH, force_reset: bool = False
             con.execute("ALTER TABLE doctor_profiles ADD COLUMN google_email TEXT NOT NULL DEFAULT ''")
         if "email" not in {r[1] for r in con.execute("PRAGMA table_info(doctor_profiles)")}:
             con.execute("ALTER TABLE doctor_profiles ADD COLUMN email TEXT NOT NULL DEFAULT ''")
+        if "is_archived" not in {r[1] for r in con.execute("PRAGMA table_info(cases)")}:
+            con.execute("ALTER TABLE cases ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0")
+        for column in ('firebase_linked','firebase_pending'):
+            if column not in {r[1] for r in con.execute('PRAGMA table_info(account_security)')}:
+                con.execute(f'ALTER TABLE account_security ADD COLUMN {column} INTEGER NOT NULL DEFAULT 0')
         version = con.execute("SELECT version FROM schema_version LIMIT 1").fetchone()
         if version is None:
             con.execute("INSERT INTO schema_version(version) VALUES(?)", (SCHEMA_VERSION,))
@@ -249,7 +259,7 @@ def initialize_database(db_path: Path | str = DB_PATH, force_reset: bool = False
         elif version[0] != SCHEMA_VERSION:
             raise RuntimeError(f"Unsupported demo DB schema {version[0]}")
         if force_reset:
-            for table in ("staff_messages","outbound_notifications","account_security","authentication_attempts"):
+            for table in ("staff_messages","outbound_notifications","account_security","authentication_attempts","account_archives"):
                 con.execute(f"DELETE FROM {table}")
             con.execute("DELETE FROM google_identities")
             con.execute("DELETE FROM google_access_requests")

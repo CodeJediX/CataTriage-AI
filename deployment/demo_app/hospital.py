@@ -13,6 +13,9 @@ from .role_databases import DOCTOR_DB_PATH, role_connection
 
 
 def require_assignment(user: dict, case_id: str):
+    with connection() as con:
+        archived=con.execute('SELECT is_archived FROM cases WHERE case_id=?',(case_id,)).fetchone()
+    if archived and archived[0] and user['r']!='admin': raise HTTPException(403,'This patient has been deleted from active records.')
     with role_connection(DOCTOR_DB_PATH) as con:
         patient = con.execute("SELECT * FROM patient_profiles WHERE case_id=?", (case_id,)).fetchone()
     if user['r'] == 'doctor' and (not patient or patient['doctor_username'] != user['u']):
