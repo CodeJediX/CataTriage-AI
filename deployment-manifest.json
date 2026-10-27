@@ -1,0 +1,350 @@
+[
+  {
+    "path": "deployment/demo_app/advisory.py",
+    "sha256": "30cd79dacd38cf810fee2ad035d818414ea8d24537e2d4a78c1e3b8a8c052c00"
+  },
+  {
+    "path": "deployment/demo_app/database.py",
+    "sha256": "e7c365102f791a8d1542f442b38c21320f98f274052f97ae9f11ae96c65a0b9f"
+  },
+  {
+    "path": "deployment/demo_app/eye_summary.py",
+    "sha256": "6ac0b34fc03945d6094fc42df3dc1ae8ac903878024f8a5a7ce40c0f6745b3c7"
+  },
+  {
+    "path": "deployment/demo_app/google_auth.py",
+    "sha256": "6a7218b30f25922824b5bf63f3546e521fd68a2e32abcab00c65388a202867a5"
+  },
+  {
+    "path": "deployment/demo_app/hospital.py",
+    "sha256": "788be1dc8be6e9c27cfc0342fb5b6e1eb37efe8e78179887c3605e5fb98498cd"
+  },
+  {
+    "path": "deployment/demo_app/main.py",
+    "sha256": "22c0dbec80979ad6c7da92e0e2d6cf05c7564ead07a72143b4b9e89a170d295a"
+  },
+  {
+    "path": "deployment/demo_app/model_provider.py",
+    "sha256": "9db142688c02ac93b90f14e903a4d2135ad9d8ddb12b9c1645b9b883033201f9"
+  },
+  {
+    "path": "deployment/demo_app/real_models.py",
+    "sha256": "b8f11340d6118dadde8a81203ae38757ecc3cfb71223bbb3858b2aee86de9756"
+  },
+  {
+    "path": "deployment/demo_app/role_databases.py",
+    "sha256": "34a1eebf6a9db0face764188de12046926aae49d18fbdeb241b4bd94e793e2cb"
+  },
+  {
+    "path": "deployment/demo_app/settings.py",
+    "sha256": "2af51a746322dffffe3c13cef85481acc25c389c3a2b11b543f3c4b101310c4c"
+  },
+  {
+    "path": "deployment/demo_app/synthetic_models.py",
+    "sha256": "e854262685c173492cc89209493991a6356fff12b5d6de6c64cbdd0855eb03f2"
+  },
+  {
+    "path": "deployment/demo_app/__init__.py",
+    "sha256": "9724d32bccf255a2b528f09ded3c0b623eb52f61bc285523f367783de0cd7fa7"
+  },
+  {
+    "path": "deployment/demo_app/static/app-extra.css",
+    "sha256": "a646812103752edd09e3a4a886782420f97a52ed1f5f0ce86f6dc96ad06b208a"
+  },
+  {
+    "path": "deployment/demo_app/static/app.css",
+    "sha256": "19af2b6c1cf1dda012d043762148e699af83f74c7154317aa4048afa56cefdb3"
+  },
+  {
+    "path": "deployment/demo_app/static/app.js",
+    "sha256": "8f9553fc9bd1fb6b78fbb88f7b301893f99cd77f4a94bbae4e419357fa74c58e"
+  },
+  {
+    "path": "deployment/demo_app/static/favicon.svg",
+    "sha256": "30842fd59e9c7e64bc67a97573eb315ae44c611fac7a618518dab65e1bae3284"
+  },
+  {
+    "path": "deployment/demo_app/static/hospital.css",
+    "sha256": "e89a8066816482840a110aa25dc488d730510c46d0c93d989fb7f3ca236cdd9a"
+  },
+  {
+    "path": "deployment/demo_app/static/responsive.css",
+    "sha256": "344f771352a2073106ac7a0653a84301b598b1da97aeb2bf5955ac2418003b08"
+  },
+  {
+    "path": "deployment/demo_app/static/simulation.css",
+    "sha256": "edb9b7d7c8cef034bfa9bd648f9567c8be5c60f3909620e1741563b15a93c598"
+  },
+  {
+    "path": "deployment/demo_app/templates/about.html",
+    "sha256": "7bbcbfa55b46cab3eddce561bfe4dd5a4b41375115b911b704846498fbb641fc"
+  },
+  {
+    "path": "deployment/demo_app/templates/admin.html",
+    "sha256": "41717ebbbec8476450afa1785dd20fb71242f395bc1f70a2a593a9a1de26b10e"
+  },
+  {
+    "path": "deployment/demo_app/templates/audit.html",
+    "sha256": "44f05d9073bfb1180d611cf2a7c5955b1956cfc02ce509a72c3569b56e8b767a"
+  },
+  {
+    "path": "deployment/demo_app/templates/base.html",
+    "sha256": "b8ba216a1491e0e7e6333a86fb963a6129aa8e9f05b7871c88ecae79ce6a82c7"
+  },
+  {
+    "path": "deployment/demo_app/templates/calendar.html",
+    "sha256": "9da798f3493bcf4f0aca662f537f293aea33716a77293a30fe2420dd8a272104"
+  },
+  {
+    "path": "deployment/demo_app/templates/cases.html",
+    "sha256": "d8e105bf5f6178c5f64e044eff16bb579ebffbe7c203fba60094b9be352aaa8b"
+  },
+  {
+    "path": "deployment/demo_app/templates/case_detail.html",
+    "sha256": "3eea7ef79b4a2d6aa86bf1368a7785edfbcc618be4fefb15172c1f9f1ec6a5bb"
+  },
+  {
+    "path": "deployment/demo_app/templates/clinical_review.html",
+    "sha256": "05d72144306a01861db60b148566a7ad3fecbd2b89e5687bf632349ede63319e"
+  },
+  {
+    "path": "deployment/demo_app/templates/doctor.html",
+    "sha256": "5eaed97900a2812c614664d3048aab1c3419fae497dd10cda0a9fdb6543bf880"
+  },
+  {
+    "path": "deployment/demo_app/templates/doctor_review.html",
+    "sha256": "550a0cb2a0ca09d2afd93d4fd08db27625c6f46104adcaadfe4b67c7dd0ef5c9"
+  },
+  {
+    "path": "deployment/demo_app/templates/doctor_workspace.html",
+    "sha256": "1f8ee8752e5bbd70d34bfd44fdf19e5e29afa5556b69afe45fccc5eca5792e6e"
+  },
+  {
+    "path": "deployment/demo_app/templates/error.html",
+    "sha256": "04e29ae9f8c5cf2d595859e58bb4a4d9fdf054dd2a0b7c301c82436fa30aa6de"
+  },
+  {
+    "path": "deployment/demo_app/templates/intake.html",
+    "sha256": "058b25151a5f68485d903cee01211bed92780a4b90b83eac50a873949db7767a"
+  },
+  {
+    "path": "deployment/demo_app/templates/leave.html",
+    "sha256": "c9982e88e115922b39a94c11c722ecb344da7a2e3ea05c1a3fa3c61680bbe469"
+  },
+  {
+    "path": "deployment/demo_app/templates/login.html",
+    "sha256": "5d552e205f49ddb2f470f161317352aa70f60b90b6d4c005c258270aff12bdfb"
+  },
+  {
+    "path": "deployment/demo_app/templates/model.html",
+    "sha256": "c46e2beedc1eed0f1bd3175f849008c2381b60f752f2523696969b87229d0580"
+  },
+  {
+    "path": "deployment/demo_app/templates/new_case.html",
+    "sha256": "18262aacec720706c028d6a05d63a99b656c9643b4e83fc462037eb2b26db0ca"
+  },
+  {
+    "path": "deployment/demo_app/templates/overview.html",
+    "sha256": "e349156903a585bd4e8634cfadedf5afbed9b5439e7c13587bcfc49cc6cd758e"
+  },
+  {
+    "path": "deployment/demo_app/templates/print_case.html",
+    "sha256": "c3356829b662bca92bd20b94fa2b87c62b3c62edd9e57ca7983a10be9ef60b3f"
+  },
+  {
+    "path": "deployment/demo_app/templates/queue.html",
+    "sha256": "a73c9c21ffa107f2272a28991600b8236124f3d1297daeee4ba0add3150bddbf"
+  },
+  {
+    "path": "deployment/demo_app/templates/real_lab.html",
+    "sha256": "4acb1b7d10bb9eb353dd107506181469bd9be558e5e4c5cc9cc7afec8f9d89a2"
+  },
+  {
+    "path": "deployment/demo_app/templates/schedule_calendar.html",
+    "sha256": "f0f737bb6ac14af0cb44198e9ca9146cce5b79f92224ed7e57ec9fd655a74d8e"
+  },
+  {
+    "path": "deployment/demo_app/templates/simulation.html",
+    "sha256": "5b0c493735fc969a745e3ca873877c4790931f1bf46bd60dd5c2e5047561644c"
+  },
+  {
+    "path": "deployment/demo_app/templates/support.html",
+    "sha256": "9962529ec2cad62d87e25561854a3a65c077c79d34bc8c15886bab5df2294615"
+  },
+  {
+    "path": "agents/workflow.py",
+    "sha256": "3be41aeae60232d755bc1179e1480f3e182a6fbbb5c966a60c1533d1c734164f"
+  },
+  {
+    "path": "agents/__init__.py",
+    "sha256": "233714894f4a40f5e5f46f1d346cbe1b7245eddeeba8f7e97f5c33a8189d82d3"
+  },
+  {
+    "path": "models/cataract_grade_multidata_real/best_model.pt",
+    "sha256": "639bbe335b0db6e401f17c028a1a5ec35fcfe3f911012571b2c74bd68d83ebd2"
+  },
+  {
+    "path": "models/cataract_grade_multidata_real/metrics.json",
+    "sha256": "cf9712ac34f4975e7e5f3c390c1c866640c7cc390a9b7b4204f4a4a1c5371d46"
+  },
+  {
+    "path": "models/cataract_grade_multidata_real/test_confusion_matrix.png",
+    "sha256": "45da6d147d3ea4ff1b043659e7f0de0e634c91a44b0a76cf7581f043f3074060"
+  },
+  {
+    "path": "models/cataract_grade_multidata_real/training_curves.png",
+    "sha256": "b241607a71485b87ac50af36ccd78109b6f84a7ca5b9754294a05d40a566c33d"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/best_model.pt",
+    "sha256": "3a710d285efc5d6a5602311f1cfa5d2c7f6448b89858112a97bc2f86b3f44db7"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/metrics.json",
+    "sha256": "e1f83af23436a167e7a5c6f0119a379907206fcce3a0c77cca415f9906f83cb4"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/test_confusion_matrix.png",
+    "sha256": "0f9411215fb74d3bd937467347937cf3937893294bfcbac15400d9bbcb9408f1"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/training_curves.png",
+    "sha256": "ab19cd6b7b4447c5c2037dc27b011d830d4f4bf8dfa120b4d7dcc7c6e29b88fe"
+  },
+  {
+    "path": "models/cataract_grade_synthetic/best_model.pth",
+    "sha256": "529eab566b275d68fec08f1605e851a700e539cf020a2e499c97426e9483e14e"
+  },
+  {
+    "path": "models/cataract_grade_synthetic/model_status.json",
+    "sha256": "89177b590bf5872998607f3550fd51dd37421dea12204df2fc301493b8422022"
+  },
+  {
+    "path": "models/clinical_fusion_synthetic/best_model.pth",
+    "sha256": "7e2e9eccbd8d31297f55405bf3d2698ddb8ecb8c0d3b742929477fc706ec8949"
+  },
+  {
+    "path": "models/clinical_fusion_synthetic/model_status.json",
+    "sha256": "b56fa3f9ba173b0ddde751c6c2778d7914e4a2b67f943b50dcdc566e0e759c10"
+  },
+  {
+    "path": "models/retina_four_class/efficientnet_b0_v3/best_macro_f1_model.pth",
+    "sha256": "84242cff8dc91da8e8de3475fbb1b798408309bb3d24c11c8e41904fd4fd53bd"
+  },
+  {
+    "path": "reports/model_evaluation_v3/accuracy.png",
+    "sha256": "0a3d5b79670400850f92ded621a828dca3ed0685e91763891c2beda55ad66ee0"
+  },
+  {
+    "path": "reports/model_evaluation_v3/confusion_matrix.csv",
+    "sha256": "fb77a1f804636130eb7beb62776b7879f43f35d2058890592f88cfbecc2b96cb"
+  },
+  {
+    "path": "reports/model_evaluation_v3/confusion_matrix.png",
+    "sha256": "d7724d4720447089b9adb86c200271109d451908723a1b0cee62be8d00ea935d"
+  },
+  {
+    "path": "reports/model_evaluation_v3/final_metrics.csv",
+    "sha256": "a2b35fe41e50108e43ee65d152a0baff7bef34490e6e30436d3e806e0a080bbd"
+  },
+  {
+    "path": "reports/model_evaluation_v3/final_test_metrics.png",
+    "sha256": "101feb2db1db9cc563028999936e0c4adf2e54088976efb08a50e2a4d1b8f1e3"
+  },
+  {
+    "path": "reports/model_evaluation_v3/generalization_gap.png",
+    "sha256": "335f756c9075dd174c7cdc8c55b65e9a992b17b462417a763320346f26c2c61d"
+  },
+  {
+    "path": "reports/model_evaluation_v3/learning_rate.png",
+    "sha256": "033c76936162889fa25a0777c7d1ab0e9b7c22dd6077fa056f401b487883907c"
+  },
+  {
+    "path": "reports/model_evaluation_v3/loss.png",
+    "sha256": "79fc031884450385a75e24b68ee7274e1b74cebaf74a3b8f46b5fb32983a48e0"
+  },
+  {
+    "path": "reports/model_evaluation_v3/macro_f1.png",
+    "sha256": "e6fc7c0ca7a4a4d062933a50bb593c83a43932401cebef81b3c53dd270662a68"
+  },
+  {
+    "path": "reports/model_evaluation_v3/normalized_confusion_matrix.png",
+    "sha256": "8f644e663bf7b8a068c93b11f96aa9309a5836f28aac9e5e1204ea9cd3f6af97"
+  },
+  {
+    "path": "reports/model_evaluation_v3/per_class_metrics.csv",
+    "sha256": "df6ce1d9be7aef0ce759e1874083337fa4375de037a40996303a8a33416a6b2e"
+  },
+  {
+    "path": "reports/model_evaluation_v3/per_class_metrics.png",
+    "sha256": "82ba7d5d836acb3f5f6c773ab2028cbd1f825dab3a8bac5900ced3d0e0a28180"
+  },
+  {
+    "path": "reports/model_evaluation_v3/roc_curves.png",
+    "sha256": "b45f2734418e5dcec3e1d685df0e01841dc1f12098525f863126fb78fa2d5019"
+  },
+  {
+    "path": "reports/model_evaluation_v3/training_history.csv",
+    "sha256": "9f4d45fac1a428bad2e45e8253ed3d410d4427e38c653e5c40e9b60402ea3db9"
+  },
+  {
+    "path": "reports/cataract_grade_synthetic/classification_report.json",
+    "sha256": "b322c197bb9e15b08c21da8280d7e9ea694f49116b72b9ed28bbe5166fd7a8ab"
+  },
+  {
+    "path": "reports/cataract_grade_synthetic/confusion_matrix.png",
+    "sha256": "9aaf3510bd5ad5c9d2263dd2d3022bc404b0cd9d7e07c05ff44b4d65af714585"
+  },
+  {
+    "path": "reports/cataract_grade_synthetic/metrics.json",
+    "sha256": "cc68cfe7312a526a52c348530085d902106b0b59aaa54cb5bcc98842b31af02f"
+  },
+  {
+    "path": "reports/cataract_grade_synthetic/training_curves.png",
+    "sha256": "65415c1e76fea712c8a7a17a346989d67197b2464d0af2cc256de40bf2ebbcba"
+  },
+  {
+    "path": "reports/clinical_fusion_synthetic/classification_report.json",
+    "sha256": "b322c197bb9e15b08c21da8280d7e9ea694f49116b72b9ed28bbe5166fd7a8ab"
+  },
+  {
+    "path": "reports/clinical_fusion_synthetic/confusion_matrix.png",
+    "sha256": "9aaf3510bd5ad5c9d2263dd2d3022bc404b0cd9d7e07c05ff44b4d65af714585"
+  },
+  {
+    "path": "reports/clinical_fusion_synthetic/metrics.json",
+    "sha256": "d72971846424980aa29bd64d89d5636761f154032ed7467c429d52567a21e3fa"
+  },
+  {
+    "path": "reports/clinical_fusion_synthetic/training_curves.png",
+    "sha256": "f12b4fe629e1196fbdacdcc803ddcfd8fa7cec01acf9d9eb8c8d1245ea323af5"
+  },
+  {
+    "path": "output/pdf/cataract_grade_multidata_model_readiness.pdf",
+    "sha256": "66ab2513f63580a083dc0c1be96db37af9ab1eacf29f1d0090d7c7f73e9ab095"
+  },
+  {
+    "path": "output/pdf/catatriage_full_agents_and_models_report.pdf",
+    "sha256": "91fb5d376b98cd29caf54fccfe42e8c0c47e38412aaf47482c739d5a4a4f31e5"
+  },
+  {
+    "path": "output/pdf/clinical_fusion_model_readiness.pdf",
+    "sha256": "8983a7aa3f343bdd1fee8bcdc8bfa9461bf54cfc433767003e06e1bf842aa2da"
+  },
+  {
+    "path": "output/pdf/fundus_v3_model_evidence.pdf",
+    "sha256": "3b1bdc2cc70a6815a5f55a37304dd7ee19784b3f692326f4989c6f826eee7ce0"
+  },
+  {
+    "path": "output/pdf/real_models_and_agents_evidence.pdf",
+    "sha256": "d2a6a0ec89edb1a3aede37685de64fad407c3407d2a6d9df075e1bb88f263d51"
+  },
+  {
+    "path": "output/pdf/synthetic_cataract_grade_model_evidence.pdf",
+    "sha256": "65eb497f59c66580ccab599a0ff8d282ef7a606ef1cb60ea8839fab3672a462a"
+  },
+  {
+    "path": "output/pdf/synthetic_clinical_fusion_model_evidence.pdf",
+    "sha256": "f0827d92be56d896e7d8b08f8524670f9f6d27fc7f5d7417cab7ab25491ceb62"
+  }
+]

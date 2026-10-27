@@ -1,0 +1,4 @@
+deployment/demo_app/data/
+.env*
+__pycache__/
+*.pyc

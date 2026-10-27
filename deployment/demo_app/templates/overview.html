@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Overview — CataTriage-AI{% endblock %}
+{% block content %}
+<header class="page-head"><div><span class="eyebrow">Operations overview</span><h1>Today’s pathway</h1><p>A transparent view of fictional cases and clinician-approved priorities.</p></div><a class="button primary" href="/cases/new">Register demo case</a></header>
+<section class="stat-grid">
+  <article class="stat"><span>Open cases</span><strong>{{ (counts.get('awaiting_review',0)+counts.get('approved',0)+counts.get('scheduled',0)) }}</strong><small>Simulated records</small></article>
+  <article class="stat accent"><span>Awaiting review</span><strong>{{ counts.get('awaiting_review',0) }}</strong><small>Clinician action required</small></article>
+  <article class="stat"><span>Tier 1 approved</span><strong>{{ tiers.get('Tier 1',0) }}</strong><small>Doctor-entered only</small></article>
+  <article class="stat"><span>Scheduled</span><strong>{{ counts.get('scheduled',0) }}</strong><small>Fictional appointments</small></article>
+</section>
+<div class="grid two-one">
+<section class="panel"><div class="panel-head"><div><span class="eyebrow">Queue pulse</span><h2>Longest waiting cases</h2></div><a href="/cases">View registry</a></div>
+<div class="table-wrap"><table><thead><tr><th>Case</th><th>Modality</th><th>Approved tier</th><th>Wait</th><th>Status</th></tr></thead><tbody>{% for c in cases %}<tr><td><a href="/cases/{{ c.case_id }}"><strong>{{ c.case_id }}</strong><small>{{ c.patient_alias }}</small></a></td><td>{{ c.modality|replace('_',' ')|title }}</td><td><span class="chip {{ (c.approved_tier or 'pending')|lower|replace(' ','-') }}">{{ c.approved_tier or 'Pending' }}</span></td><td>{{ c.wait_days }} days</td><td>{{ c.status|replace('_',' ')|title }}</td></tr>{% endfor %}</tbody></table></div></section>
+<aside class="panel"><div class="panel-head"><div><span class="eyebrow">Capacity</span><h2>Upcoming clinic</h2></div></div>{% for a in appointments %}<div class="appt"><span class="date-box">{{ a.scheduled_date[5:] }}</span><div><strong>{{ a.case_id }}</strong><small>{{ a.slot }} · {{ a.patient_alias }}</small></div></div>{% endfor %}<div class="capacity"><span>Demo weekly capacity</span><strong>12 slots</strong><div class="bar"><i style="width:58%"></i></div><small>7 allocated · configuration fixture</small></div></aside>
+</div>
+{% endblock %}

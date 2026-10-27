@@ -1,0 +1,5 @@
+,cataract,glaucoma,normal,retinal_disease
+cataract,9,2,4,0
+glaucoma,0,10,6,0
+normal,1,1,42,1
+retinal_disease,0,2,8,5

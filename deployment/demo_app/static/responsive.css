@@ -1,0 +1,9 @@
+@media (max-width: 900px) {
+  .login-wrap {
+    grid-template-columns: minmax(0, 520px);
+    justify-content: center;
+    width: 100%;
+  }
+  .login-copy { display: none; }
+  .login-card { width: 100%; }
+}

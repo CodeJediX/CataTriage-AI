@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}CataTriage-AI{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/responsive.css">
+  <link rel="stylesheet" href="/static/app-extra.css">
+  <link rel="stylesheet" href="/static/simulation.css">
+  <link rel="stylesheet" href="/static/hospital.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body class="{% if not user %}auth-body{% endif %}">
+<div id="app-preloader" class="preloader" role="status" aria-live="polite"><div class="preloader-core"><span class="preloader-eye"><i></i></span><strong>CataTriage-AI</strong><small>Preparing the secure clinical workspace</small><div class="preloader-track"><i></i></div></div></div>
+{% if user %}
+<aside class="sidebar">
+  <a class="brand" href="/"><span class="brand-mark">CT</span><span>CataTriage<small>Clinical workflow demo</small></span></a>
+  <nav aria-label="Primary">
+    <a class="{{ 'active' if page=='overview' }}" href="/">Overview</a>
+    {% if user.r == 'doctor' %}<a class="{{ 'active' if page=='doctor' }}" href="/doctor">Doctor workspace</a>{% endif %}
+    {% if user.r == 'doctor' %}<a class="{{ 'active' if page=='leave' }}" href="/doctor/leave">Leave requests</a>{% endif %}
+    {% if user.r == 'admin' %}<a class="{{ 'active' if page=='admin' }}" href="/admin">Hospital dashboard</a>{% endif %}
+    {% if user.r == 'technician' %}<a class="{{ 'active' if page=='support' }}" href="/support">Capture &amp; support</a>{% endif %}
+    <a class="{{ 'active' if page=='cases' }}" href="/cases">Case registry</a>
+    {% if user.r != 'admin' %}<a class="{{ 'active' if page=='new' }}" href="/cases/new">New intake</a>{% endif %}
+    {% if user.r == 'admin' %}<a class="{{ 'active' if page=='queue' }}" href="/queue">Approved queue</a>{% endif %}
+    <a class="{{ 'active' if page=='calendar' }}" href="/calendar">Calendar</a>
+    {% if user.r == 'admin' %}<a class="{{ 'active' if page=='model' }}" href="/model">Model evidence</a>{% endif %}
+    <a class="{{ 'active' if page=='audit' }}" href="/audit">Audit trail</a>
+    <a class="{{ 'active' if page=='about' }}" href="/about">Safety &amp; scope</a>
+  </nav>
+  <div class="sidebar-foot">
+    <span class="role-chip">{{ user.r }}</span>
+    <strong>{{ user.n }}</strong><small>{{ user.u }}</small>
+    <form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="link-button">Sign out</button></form>
+  </div>
+</aside>
+{% endif %}
+<main class="{{ 'shell' if user else 'auth-shell' }}">
+  {% if hosted %}<div class="notice hosted-notice"><strong>Free education demo.</strong> Records and uploads reset when this service restarts or sleeps. Use fictional patient information.</div>{% endif %}
+  {% if user %}<div class="safety-strip"><strong>RESEARCH PROTOTYPE</strong><span>Models use public retrospective research datasets. Demo cases stay fictional. Not for diagnosis, treatment, or patient care.</span></div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

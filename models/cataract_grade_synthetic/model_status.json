@@ -1,0 +1,16 @@
+{
+  "status": "trained_synthetic_education_only",
+  "checkpoint": "best_model.pth",
+  "loss": 0.025261830464005472,
+  "accuracy": 1.0,
+  "balanced_accuracy": 1.0,
+  "macro_f1": 1.0,
+  "test_samples": 800,
+  "best_epoch": 18,
+  "best_validation_macro_f1": 1.0,
+  "elapsed_seconds": 103.15427088737488,
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 2050",
+  "synthetic_only": true,
+  "clinical_use": false
+}

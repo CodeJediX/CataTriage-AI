@@ -1,0 +1,8 @@
+metric,value_percent,source
+Accuracy,72.5275,v3_final_test/final_test_summary.txt
+Balanced accuracy,62.2917,v3_final_test/final_test_summary.txt
+Macro precision,77.5000,v3_final_test/final_test_summary.txt
+Macro recall,62.2917,v3_final_test/final_test_summary.txt
+Macro F1,66.0338,v3_final_test/final_test_summary.txt
+Weighted F1,70.6214,v3_final_test/final_test_summary.txt
+Macro OvR ROC-AUC,88.9266,v3_final_test/final_test_summary.txt
