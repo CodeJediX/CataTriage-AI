@@ -54,7 +54,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="CataTriage-AI Demo",
-    description="Local-only research and competition workflow prototype.",
+    description="Research and competition workflow prototype.",
     docs_url=None,
     redoc_url=None,
     lifespan=lifespan,
@@ -172,6 +172,7 @@ def health() -> dict:
             "scheduling_provider":scheduling["provider"],"scheduling_model":scheduling["model"],
             "scheduling_fallback_models":scheduling.get("fallback_models",[]),
             "scheduling_configured":bool(scheduling["enabled"] and scheduling["api_key"] and scheduling["base_url"]),
+            "persistent_database":"supabase_postgres" if cloud_database.enabled() else "local_sqlite",
             "real_multidata_available": (ROOT / "models" / "cataract_grade_multidata_real" / "best_model.pt").exists(),
             "real_fusion_available": (ROOT / "models" / "clinical_fusion_catscreen_real" / "best_model.pt").exists()}
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% block title %}Real model lab — CataTriage-AI{% endblock %}
 {% block content %}
-<header class="page-head real-head"><div><span class="eyebrow">Real public research data · local GPU inference</span><h1>Two-model research laboratory</h1><p>Run the models trained from real retrospective records and real slit-lamp photographs. Every output stays advisory and requires clinician review.</p></div><a class="button secondary" href="/model">Open evidence</a></header>
+<header class="page-head real-head"><div><span class="eyebrow">Real public research data · {{ 'cloud CPU inference' if cloud_database else 'local inference' }}</span><h1>Two-model research laboratory</h1><p>Run the models trained from real retrospective records and real slit-lamp photographs. Every output stays advisory and requires clinician review.</p></div><a class="button secondary" href="/model">Open evidence</a></header>
 <div class="alert warning"><strong>Not a medical device.</strong> Do not enter identifiable patient information. These models have no external or prospective clinical validation and never set diagnosis, treatment, urgency, or queue priority.</div>
 <section class="grid two lab-grid">
   <form class="panel model-form" method="post" action="/real-lab/tabular">

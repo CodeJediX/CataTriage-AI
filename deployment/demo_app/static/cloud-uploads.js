@@ -12,7 +12,7 @@ if (document.body.dataset.cloudUploads === 'true') {
     const status = document.createElement('p');
     status.setAttribute('role', 'status');
     status.className = 'notice';
-    form.append(status);
+    form.after(status);
     form.inert = true;
     try {
       if (selected.length > 12) throw new Error('Select at most 12 images.');

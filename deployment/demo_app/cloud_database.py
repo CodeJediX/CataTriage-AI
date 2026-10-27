@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import os
 import re
-from collections.abc import Mapping
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -66,4 +65,5 @@ def connection(namespace="hospital"):
                          connect_timeout=10, prepare_threshold=None,
                          sslmode="verify-full",sslrootcert=str(Path(__file__).with_name("supabase-ca.crt"))) as raw:
         raw.execute(f'SET LOCAL search_path TO "{schema}", public')
+        raw.execute("SET LOCAL TIME ZONE 'Asia/Colombo'")
         yield Connection(raw)

@@ -5,7 +5,7 @@
   },
   {
     "path": "deployment/demo_app/cloud_database.py",
-    "sha256": "60ffb3a15cdd4b55eac706848eb09ed2fcf23a5f0376a51ebdd96c18a1b04a12"
+    "sha256": "a0d9716daff2a196ce7ebb743797da83ce1dd40e0cb0d651f0e115462bcdd4bd"
   },
   {
     "path": "deployment/demo_app/cloud_uploads.py",
@@ -33,11 +33,11 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "298d8984ee1b8622d5c5938bf93b2bea557dbbb8d27080d277c54021658d3daa"
+    "sha256": "b365f0c362ac487ad826967a4e789a5c983140ea6bbbdd74911bc26f7f746e9c"
   },
   {
     "path": "deployment/demo_app/model_provider.py",
-    "sha256": "9db142688c02ac93b90f14e903a4d2135ad9d8ddb12b9c1645b9b883033201f9"
+    "sha256": "a92b9b430693b379a0b2bf082c5338a713f5288ab1e0119cc1c4cc3d5aaf3dbf"
   },
   {
     "path": "deployment/demo_app/real_models.py",
@@ -77,7 +77,7 @@
   },
   {
     "path": "deployment/demo_app/static/cloud-uploads.js",
-    "sha256": "046f819e858df239dc6bb95b2919611fc0a8a8bcc3494a7b4202057cfd2f564d"
+    "sha256": "1fbb0ce4e3f5286744547a479787bf3e05019acacb680127093820e0494b802a"
   },
   {
     "path": "deployment/demo_app/static/favicon.svg",
@@ -153,7 +153,7 @@
   },
   {
     "path": "deployment/demo_app/templates/login.html",
-    "sha256": "5d552e205f49ddb2f470f161317352aa70f60b90b6d4c005c258270aff12bdfb"
+    "sha256": "5b16599d2fe75ce621db404173cb7569a388993d4cf1826c67aa6fa75db1d1fd"
   },
   {
     "path": "deployment/demo_app/templates/model.html",
@@ -177,7 +177,7 @@
   },
   {
     "path": "deployment/demo_app/templates/real_lab.html",
-    "sha256": "4acb1b7d10bb9eb353dd107506181469bd9be558e5e4c5cc9cc7afec8f9d89a2"
+    "sha256": "7b1c23a765e550809dc9590d2abe2599818de98d399eafc9e031f32ca9762fb7"
   },
   {
     "path": "deployment/demo_app/templates/schedule_calendar.html",

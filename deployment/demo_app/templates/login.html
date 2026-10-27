@@ -12,7 +12,7 @@
     <a class="portal-card" href="/login/admin"><b>02</b><strong>Hospital admin</strong><span>Approved queue, capacity, scheduling and audit.</span></a>
     <a class="portal-card" href="/login/technician"><b>03</b><strong>Technician / support</strong><span>Registration, structured entry and capture quality.</span></a>
   </div>{% else %}<form class="login-card" action="/login" method="post">
-    <div class="brand login-brand"><span class="brand-mark">CT</span><span>CataTriage<small>Local demonstration</small></span></div>
+    <div class="brand login-brand"><span class="brand-mark">CT</span><span>CataTriage<small>{{ 'Hosted research demo' if cloud_database else 'Local demonstration' }}</small></span></div>
     <h2>{{ portal|title }} portal</h2><p>{{ 'Enter the private hosted demo credentials.' if hosted else 'Use the fictional '+portal+' account below.' }}</p>
     {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
     <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="next_path" value="{{ next_path }}"><input type="hidden" name="portal" value="{{ portal }}">
@@ -22,7 +22,7 @@
     {% if portal=='doctor' %}{% if google_enabled %}<a class="button secondary" href="/auth/google">Sign in / request access with Google</a>{% else %}<div class="integration-note">Google sign-in is ready for hospital OAuth configuration.</div>{% endif %}{% if google_pending %}<div class="notice">Your Google access request was received. The hospital admin must link it to a registered doctor before sign-in.</div>{% endif %}{% endif %}
     {% if not hosted %}<div class="credentials"><strong>Demo access</strong> {{ 'dr.maya / demo-doctor' if portal=='doctor' else ('admin.nila / demo-admin' if portal=='admin' else 'tech.alex / demo-tech') }}</div>{% endif %}
     <a href="/login">← Choose another role</a>
-    <small>Passwords are salted PBKDF2 hashes in the local demo database.</small>
+    <small>Passwords are stored as salted PBKDF2 hashes.</small>
   </form>{% endif %}
 </section>
 {% endblock %}

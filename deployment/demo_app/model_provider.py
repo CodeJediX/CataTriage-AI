@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import gc
 import threading
+import os
 from pathlib import Path
 
 from PIL import Image, ImageStat, UnidentifiedImageError
@@ -101,10 +102,10 @@ class RetinaModelProvider:
         if self._device is None:
             try:
                 import torch
-                return "cuda" if torch.cuda.is_available() else "cpu fallback"
+                return "cuda" if torch.cuda.is_available() else ("cpu" if os.getenv("VERCEL") else "cpu fallback")
             except Exception:
                 return "unavailable"
-        return str(self._device) if str(self._device) == "cuda" else "cpu fallback"
+        return str(self._device) if str(self._device) == "cuda" or os.getenv("VERCEL") else "cpu fallback"
 
     def analyze(self, payload: bytes, modality: str) -> dict:
         image, quality = validate_image_bytes(payload)
