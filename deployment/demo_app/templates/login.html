@@ -19,6 +19,7 @@
     <label>Username<input name="username" autocomplete="username" required value="{{ 'dr.maya' if portal=='doctor' else ('admin.nila' if portal=='admin' else 'tech.alex') }}"></label>
     <label>Password<input name="password" type="password" autocomplete="current-password" required value="{{ '' if hosted else ('demo-doctor' if portal=='doctor' else ('demo-admin' if portal=='admin' else 'demo-tech')) }}"></label>
     <button class="button primary" type="submit">Open dashboard</button>
+    {% if portal=='doctor' %}<a class="button secondary" href="/login/doctor/password">Change password</a>{% endif %}
     {% if portal=='doctor' %}{% if google_enabled %}<a class="button secondary" href="/auth/google">Sign in / request access with Google</a>{% else %}<div class="integration-note">Google sign-in is ready for hospital OAuth configuration.</div>{% endif %}{% if google_pending %}<div class="notice">Your Google access request was received. The hospital admin must link it to a registered doctor before sign-in.</div>{% endif %}{% endif %}
     {% if not hosted %}<div class="credentials"><strong>Demo access</strong> {{ 'dr.maya / demo-doctor' if portal=='doctor' else ('admin.nila / demo-admin' if portal=='admin' else 'tech.alex / demo-tech') }}</div>{% endif %}
     <a href="/login">← Choose another role</a>

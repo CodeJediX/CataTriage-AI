@@ -70,6 +70,6 @@ def google_callback(request: Request, code: str = "", state: str = "", error: st
         else:
             audit(con,identity["username"],identity["role"],"google_login",None,"Verified Google identity signed in.")
             response=RedirectResponse("/doctor",status_code=303)
-            response.set_cookie("catatriage_session",make_session(identity["username"],identity["role"],identity["display_name"]),httponly=True,samesite="strict",max_age=28800)
+            response.set_cookie("catatriage_session",make_session(identity["username"],identity["role"],identity["display_name"]),httponly=True,samesite="strict",max_age=28800,secure=request.url.scheme=="https")
     response.delete_cookie("google_oauth_state")
     return response

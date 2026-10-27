@@ -1,5 +1,9 @@
 [
   {
+    "path": "deployment/demo_app/account_security.py",
+    "sha256": "2b91d3af7203b9484ccf5b34fe8450458433401d6121277886968d2b266d0dbb"
+  },
+  {
     "path": "deployment/demo_app/advisory.py",
     "sha256": "5f9289e07023c4b7aade7287cb2a7b771aafa7ebe83c8de9ab25cfdd611e14d1"
   },
@@ -16,8 +20,12 @@
     "sha256": "262415554f7f1c181d34def7cb10b6d8300141fb2017c6cfb46427cd85c4ad5d"
   },
   {
+    "path": "deployment/demo_app/communications.py",
+    "sha256": "3265e358f0481bf1c912e581576c148efde6321b5a55390505032da472761133"
+  },
+  {
     "path": "deployment/demo_app/database.py",
-    "sha256": "c3531e665910956e80d92822b8b93f5c7d946f9ae836c237d870c3434470ae81"
+    "sha256": "140941346d6f124fe6e4b53630f68d9b434069b1f5e72a312a279ea926f8c9c9"
   },
   {
     "path": "deployment/demo_app/eye_summary.py",
@@ -29,7 +37,7 @@
   },
   {
     "path": "deployment/demo_app/google_auth.py",
-    "sha256": "6a7218b30f25922824b5bf63f3546e521fd68a2e32abcab00c65388a202867a5"
+    "sha256": "e235e403d1a29c7dbd062c0515677b326bfda1a735f3baab8210a6daefc5b701"
   },
   {
     "path": "deployment/demo_app/hospital.py",
@@ -37,7 +45,7 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "600b5dcfef8f38d4fdd8ff84e7ee62a3e9cca0b006bb5311331ade605bfe4066"
+    "sha256": "60ef6115024f1a1be731cb65eaff2834044aec6d262d959bff27471343af540b"
   },
   {
     "path": "deployment/demo_app/model_provider.py",
@@ -49,11 +57,11 @@
   },
   {
     "path": "deployment/demo_app/role_databases.py",
-    "sha256": "b55535469dc94f5a24ba5e2b2835a8c86053c1379a256a19c309927c83e23b5c"
+    "sha256": "632fbdb38f25c95868ef1650c95660b8aa565f1b3f9c6107f10effbf674d55e0"
   },
   {
     "path": "deployment/demo_app/settings.py",
-    "sha256": "2af51a746322dffffe3c13cef85481acc25c389c3a2b11b543f3c4b101310c4c"
+    "sha256": "04cdf3adf2a861cee8e3056b47d034fc00da19ac881efad33220c0d09342c218"
   },
   {
     "path": "deployment/demo_app/supabase-ca.crt",
@@ -89,7 +97,7 @@
   },
   {
     "path": "deployment/demo_app/static/hospital.css",
-    "sha256": "a716243c2f8a989d3a603764fa053679314f5ad732753f642496d74201a1c4a4"
+    "sha256": "4d93fd35435883168db9c355fe3358d332dcfc9e9d3fa7a3fb04b9d9130a7cc5"
   },
   {
     "path": "deployment/demo_app/static/responsive.css",
@@ -105,7 +113,7 @@
   },
   {
     "path": "deployment/demo_app/templates/admin.html",
-    "sha256": "41717ebbbec8476450afa1785dd20fb71242f395bc1f70a2a593a9a1de26b10e"
+    "sha256": "d2c5ab50ad128b630bc446688fdd491b874f19d291519f52dbdb3a287d7ca08e"
   },
   {
     "path": "deployment/demo_app/templates/audit.html",
@@ -113,7 +121,7 @@
   },
   {
     "path": "deployment/demo_app/templates/base.html",
-    "sha256": "d58aafd26c158aaf8c49dd28a3dab3aa9f2c4655b6a9783a47e6375196743356"
+    "sha256": "2d88d821e58edce6867eaf4e0bcf9d5015d19107c2b47922e34d265ca72ba9d3"
   },
   {
     "path": "deployment/demo_app/templates/calendar.html",
@@ -141,7 +149,7 @@
   },
   {
     "path": "deployment/demo_app/templates/doctor_workspace.html",
-    "sha256": "1f8ee8752e5bbd70d34bfd44fdf19e5e29afa5556b69afe45fccc5eca5792e6e"
+    "sha256": "dc2db2d340da07374dd6ea6ad584b7d86f9f168dc7728970e6af76a59e8ffe3a"
   },
   {
     "path": "deployment/demo_app/templates/error.html",
@@ -161,7 +169,11 @@
   },
   {
     "path": "deployment/demo_app/templates/login.html",
-    "sha256": "5b16599d2fe75ce621db404173cb7569a388993d4cf1826c67aa6fa75db1d1fd"
+    "sha256": "49123115d67f5de2e2d23f704800a33292de0bc596016a004c5baf20235e00d8"
+  },
+  {
+    "path": "deployment/demo_app/templates/mailbox.html",
+    "sha256": "f031b58fd1ae23edf5bf858ee40ba477031775cbfa8bcff9e4cdfccd8efb6ee7"
   },
   {
     "path": "deployment/demo_app/templates/model.html",
@@ -174,6 +186,10 @@
   {
     "path": "deployment/demo_app/templates/overview.html",
     "sha256": "e349156903a585bd4e8634cfadedf5afbed9b5439e7c13587bcfc49cc6cd758e"
+  },
+  {
+    "path": "deployment/demo_app/templates/password_change.html",
+    "sha256": "6f044681d24d866492266f61428e0b4d4334f9dbe147da7714877c345c1113d8"
   },
   {
     "path": "deployment/demo_app/templates/print_case.html",
@@ -189,7 +205,7 @@
   },
   {
     "path": "deployment/demo_app/templates/schedule_calendar.html",
-    "sha256": "f0f737bb6ac14af0cb44198e9ca9146cce5b79f92224ed7e57ec9fd655a74d8e"
+    "sha256": "99f0e5d62ff9b2c5c9956dbef1a076bb2843c3b4da66862c1c5fe5c8fe85cfe3"
   },
   {
     "path": "deployment/demo_app/templates/simulation.html",
@@ -258,6 +274,14 @@
   {
     "path": "models/retina_four_class/efficientnet_b0_v3/best_macro_f1_model.pth",
     "sha256": "84242cff8dc91da8e8de3475fbb1b798408309bb3d24c11c8e41904fd4fd53bd"
+  },
+  {
+    "path": "docs/DOCTOR_COMMUNICATIONS_SETUP.md",
+    "sha256": "70ca6960eb068901d0cdd584ab584f7fd77ee58b354a69da104c3d4b53a269f4"
+  },
+  {
+    "path": "docs/CLINICAL_PLANNING_UPDATE.md",
+    "sha256": "1433cd8ddd833f868b8d49d4a0f6d7a4f333c3fb272eda5d5f77de3108355395"
   },
   {
     "path": "reports/model_evaluation_v3/accuracy.png",

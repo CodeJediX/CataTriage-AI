@@ -88,6 +88,8 @@ def sync_doctor_directory() -> None:
                 ON CONFLICT(username) DO UPDATE SET display_name=excluded.display_name,phone=excluded.phone,
                 working_hours=excluded.working_hours,working_days=excluded.working_days,profile_image=excluded.profile_image,whatsapp_phone=excluded.whatsapp_phone""",
                 (doctor["username"],doctor["display_name"],doctor["mobile"],doctor["work_start"]+"-"+doctor["work_end"],doctor["working_days"],doctor["profile_image"],doctor["whatsapp_phone"]))
+            if doctor.get("email"):
+                con.execute("UPDATE doctor_directory SET email=? WHERE username=?",(doctor["email"],doctor["username"]))
 
 
 def initialize_role_databases(force_reset: bool = False) -> None:

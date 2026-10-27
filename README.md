@@ -7,3 +7,5 @@ The same GPU-trained PyTorch checkpoints run on CPU in Vercel; model evidence an
 Set CATATRIAGE_DATABASE_URL and CATATRIAGE_SESSION_SECRET as server-only secrets; use the Supabase CA certificate bundled with the app. Apply the private schemas before starting. OPENROUTER_API_KEY is optional for scheduling explanations; Gemma remains primary and the configured free NVIDIA model is the fallback. Credentials, databases and raw datasets are excluded from Git.
 
 Research and education only; use fictional patient records.
+
+Doctor inboxes, temporary credentials, password changes and surgery notices: see [the setup guide](docs/DOCTOR_COMMUNICATIONS_SETUP.md). Apply deployment/cloud/doctor_communications.sql once after the base schemas.

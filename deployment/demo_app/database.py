@@ -62,6 +62,29 @@ def connection(db_path: Path | str = DB_PATH):
 
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS account_security(
+ username TEXT PRIMARY KEY REFERENCES users(username) ON DELETE CASCADE,
+ password_epoch INTEGER NOT NULL DEFAULT 0, must_change INTEGER NOT NULL DEFAULT 0,
+ temporary_expires INTEGER NOT NULL DEFAULT 0, email_status TEXT NOT NULL DEFAULT 'not_sent',
+ email_detail TEXT NOT NULL DEFAULT '', last_emailed_at TEXT
+);
+CREATE TABLE IF NOT EXISTS authentication_attempts(
+ attempt_key TEXT PRIMARY KEY, failures INTEGER NOT NULL, started_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS staff_messages(
+ id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT NOT NULL REFERENCES users(username),
+ recipient TEXT NOT NULL REFERENCES users(username), subject TEXT NOT NULL,
+ body TEXT NOT NULL, category TEXT NOT NULL, case_id TEXT, created_at TEXT NOT NULL, read_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_staff_inbox ON staff_messages(recipient,id);
+CREATE INDEX IF NOT EXISTS idx_staff_sent ON staff_messages(sender,id);
+CREATE TABLE IF NOT EXISTS outbound_notifications(
+ id INTEGER PRIMARY KEY AUTOINCREMENT, confirmation_token TEXT NOT NULL UNIQUE,
+ case_id TEXT NOT NULL REFERENCES cases(case_id), doctor_username TEXT NOT NULL REFERENCES users(username),
+ patient_name TEXT NOT NULL, recipient_phone TEXT NOT NULL, sender_phone TEXT NOT NULL,
+ surgery_date TEXT NOT NULL, slot TEXT NOT NULL, body TEXT NOT NULL,
+ delivery_status TEXT NOT NULL DEFAULT 'pending', delivery_detail TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS schema_version(version INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS users(
   username TEXT PRIMARY KEY,
@@ -216,6 +239,8 @@ def initialize_database(db_path: Path | str = DB_PATH, force_reset: bool = False
         con.executescript(SCHEMA)
         if "google_email" not in {r[1] for r in con.execute("PRAGMA table_info(doctor_profiles)")}:
             con.execute("ALTER TABLE doctor_profiles ADD COLUMN google_email TEXT NOT NULL DEFAULT ''")
+        if "email" not in {r[1] for r in con.execute("PRAGMA table_info(doctor_profiles)")}:
+            con.execute("ALTER TABLE doctor_profiles ADD COLUMN email TEXT NOT NULL DEFAULT ''")
         version = con.execute("SELECT version FROM schema_version LIMIT 1").fetchone()
         if version is None:
             con.execute("INSERT INTO schema_version(version) VALUES(?)", (SCHEMA_VERSION,))
@@ -224,6 +249,8 @@ def initialize_database(db_path: Path | str = DB_PATH, force_reset: bool = False
         elif version[0] != SCHEMA_VERSION:
             raise RuntimeError(f"Unsupported demo DB schema {version[0]}")
         if force_reset:
+            for table in ("staff_messages","outbound_notifications","account_security","authentication_attempts"):
+                con.execute(f"DELETE FROM {table}")
             con.execute("DELETE FROM google_identities")
             con.execute("DELETE FROM google_access_requests")
             con.execute("DELETE FROM case_images")

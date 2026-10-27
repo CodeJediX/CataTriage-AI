@@ -9,6 +9,7 @@ import io
 import json
 import os
 import secrets
+import time
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -32,6 +33,7 @@ from .google_auth import enabled as google_enabled, router as google_router
 from .settings import load_local_config, advisory_settings
 from agents.workflow import run_workflow
 from . import cloud_database, file_store
+from . import account_security, communications
 from .cloud_uploads import router as upload_router, restore as restore_uploads
 
 APP_DIR = Path(__file__).resolve().parent
@@ -91,12 +93,15 @@ def _sign(data: str) -> str:
 
 
 def make_session(username: str, role: str, display_name: str) -> str:
-    payload = {"u": username, "r": role, "n": display_name, "exp": int(datetime.now().timestamp()) + MAX_AGE_SECONDS}
+    with connection() as con:
+        epoch=account_security.state(con,username)["password_epoch"]
+    payload = {"u": username, "r": role, "n": display_name, "v":epoch, "exp": int(datetime.now().timestamp()) + MAX_AGE_SECONDS}
     raw = base64.urlsafe_b64encode(json.dumps(payload, separators=(",", ":")).encode()).decode().rstrip("=")
     return f"{raw}.{_sign(raw)}"
 
 
 def read_session(request: Request) -> dict | None:
+    if hasattr(request.state,"verified_session"): return request.state.verified_session
     token = request.cookies.get("catatriage_session", "")
     try:
         raw, signature = token.rsplit(".", 1)
@@ -106,9 +111,25 @@ def read_session(request: Request) -> dict | None:
         data = json.loads(base64.urlsafe_b64decode(padded))
         if data["exp"] < int(datetime.now().timestamp()):
             return None
+        with connection() as con:
+            user=con.execute("SELECT role FROM users WHERE username=?",(data["u"],)).fetchone()
+            security=account_security.state(con,data["u"])
+            profile=con.execute("SELECT is_active FROM doctor_profiles WHERE username=?",(data["u"],)).fetchone() if data["r"]=="doctor" else None
+        if not user or user[0]!=data["r"] or data.get("v",0)!=security["password_epoch"] or (profile and not profile[0]): return None
+        if security["must_change"] and security["temporary_expires"]<time.time(): return None
+        data["must_change"]=bool(security["must_change"])
+        request.state.verified_session=data
         return data
     except Exception:
         return None
+
+
+@app.middleware("http")
+async def first_login_password_change(request: Request,call_next):
+    if request.cookies.get("catatriage_session") and not request.url.path.startswith(("/static/","/login","/logout")):
+        user=read_session(request)
+        if user and user.get("must_change"): return RedirectResponse("/login/doctor/password",status_code=303)
+    return await call_next(request)
 
 
 def ensure_csrf(request: Request) -> str:
@@ -194,14 +215,50 @@ def role_login_page(request: Request, portal: str, next: str = ""):
 def login(request: Request, username: str = Form(...), password: str = Form(...), csrf: str = Form(...), next_path: str = Form("/"), portal: str = Form("")):
     verify_csrf(request, csrf)
     with connection() as con:
-        row = con.execute("SELECT * FROM users WHERE username=?", (username.strip().lower(),)).fetchone()
-        if not row or not verify_password(password, row["password_hash"]) or (portal and row["role"] != portal):
+        username=username.strip().lower()
+        key=account_security.attempt_key(request,username)
+        if account_security.blocked(con,key): return render(request,"login.html",next_path=next_path,error="Too many attempts. Try again in 15 minutes.",portal=portal or None,response_status=429)
+        row = con.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+        security=account_security.state(con,username)
+        profile=con.execute("SELECT is_active FROM doctor_profiles WHERE username=?",(username,)).fetchone() if row and row["role"]=="doctor" else None
+        if not row or not verify_password(password, row["password_hash"]) or (portal and row["role"] != portal) or (profile and not profile[0]) or (security["must_change"] and security["temporary_expires"]<time.time()):
+            account_security.failed(con,key)
             return render(request, "login.html", next_path=next_path, error="Those credentials do not match this role portal.", portal=portal or None)
+        con.execute("DELETE FROM authentication_attempts WHERE attempt_key=?",(key,))
         audit(con, row["username"], row["role"], "login", None, "Demo account signed in.")
     if not next_path.startswith("/") or next_path.startswith("//"):
         next_path = "/"
-    response = RedirectResponse(next_path, status_code=303)
+    response = RedirectResponse("/login/doctor/password" if security["must_change"] else next_path, status_code=303)
     response.set_cookie("catatriage_session", make_session(row["username"], row["role"], row["display_name"]), httponly=True, samesite="strict", max_age=MAX_AGE_SECONDS, secure=request.url.scheme=="https")
+    return response
+
+
+@app.get("/login/doctor/password",response_class=HTMLResponse)
+def password_page(request: Request):
+    return render(request,"password_change.html",error=None,success=False)
+
+
+@app.post("/login/doctor/password",response_class=HTMLResponse)
+def change_doctor_password(request: Request,username:str=Form(...,max_length=80),current_password:str=Form(...,max_length=128),new_password:str=Form(...,max_length=128),confirmation:str=Form(...,max_length=128),csrf:str=Form(...)):
+    verify_csrf(request,csrf)
+    if len(new_password)<12 or new_password!=confirmation or new_password==current_password:
+        return render(request,"password_change.html",error="Use a different password of at least 12 characters and match both new-password fields.",success=False,response_status=400)
+    username=username.strip().lower()
+    with connection() as con:
+        con.execute("BEGIN IMMEDIATE")
+        key=account_security.attempt_key(request,username)
+        if account_security.blocked(con,key): return render(request,"password_change.html",error="Too many attempts. Try again in 15 minutes.",success=False,response_status=429)
+        row=con.execute("SELECT u.* FROM users u JOIN doctor_profiles d USING(username) WHERE u.username=? AND u.role='doctor' AND d.is_active=1",(username,)).fetchone()
+        security=account_security.state(con,username)
+        if not row or not verify_password(current_password,row["password_hash"]) or (security["must_change"] and security["temporary_expires"]<time.time()):
+            account_security.failed(con,key)
+            return render(request,"password_change.html",error="The current credentials could not be verified. Expired temporary passwords require a new login email from the admin.",success=False,response_status=400)
+        con.execute("UPDATE users SET password_hash=? WHERE username=?",(hash_password(new_password),username))
+        account_security.changed(con,username)
+        con.execute("DELETE FROM authentication_attempts WHERE attempt_key=?",(key,))
+        audit(con,username,"doctor","password_changed",None,"Doctor verified the current password and set a new password; existing sessions revoked.")
+    response=render(request,"password_change.html",error=None,success=True)
+    response.delete_cookie("catatriage_session")
     return response
 
 
@@ -401,11 +458,79 @@ def doctor_dashboard(request: Request, q: str = "", scope: str = "mine", message
         appointments = con.execute("SELECT a.*,c.patient_alias FROM appointments a JOIN cases c USING(case_id) WHERE scheduled_date>=? ORDER BY scheduled_date,slot",(date.today().isoformat(),)).fetchall()
         profile = con.execute("SELECT * FROM doctor_profiles WHERE username=?", (user["u"],)).fetchone()
         leaves = con.execute("SELECT * FROM leave_requests WHERE doctor_username=? ORDER BY leave_date DESC", (user["u"],)).fetchall()
+        inbox=con.execute("SELECT * FROM staff_messages WHERE recipient=? ORDER BY id DESC LIMIT 4",(user["u"],)).fetchall()
+        unread=con.execute("SELECT COUNT(*) FROM staff_messages WHERE recipient=? AND read_at IS NULL",(user["u"],)).fetchone()[0]
     ids = {p["case_id"] for p in patients}
     appointments = [a for a in appointments if a["case_id"] in ids]
     assessments = [a for a in assessments if a["case_id"] in ids]
     return render(request, "doctor_workspace.html", page="doctor", patients=patients, directory=directory, messages=messages,
-                  assessments=assessments, notifications=notifications, appointments=appointments, filters={"q":q,"scope":scope}, profile=profile, leaves=leaves, message_status=message_status)
+                  assessments=assessments, notifications=notifications, appointments=appointments, filters={"q":q,"scope":scope}, profile=profile, leaves=leaves, message_status=message_status,inbox=inbox,unread=unread)
+
+
+def _staff_message(con,sender,recipient,subject,body,category="announcement",case_id=None):
+    con.execute("INSERT INTO staff_messages(sender,recipient,subject,body,category,case_id,created_at) VALUES(?,?,?,?,?,?,?)",(sender,recipient,subject,body,category,case_id,now_iso()))
+
+
+@app.get("/doctor/inbox",response_class=HTMLResponse)
+@app.get("/admin/messages",response_class=HTMLResponse)
+def mailbox(request:Request,box:str="inbox"):
+    user=require_user(request,"admin" if request.url.path.startswith("/admin/") else "doctor")
+    if box not in {"inbox","sent"}: raise HTTPException(400,"Choose Inbox or Sent.")
+    with connection() as con:
+        staff=[dict(row) for row in con.execute("SELECT u.username,u.display_name,u.role FROM users u LEFT JOIN doctor_profiles d USING(username) WHERE u.role='admin' OR (u.role='doctor' AND d.is_active=1) ORDER BY u.display_name")]
+        column="recipient" if box=="inbox" else "sender"
+        messages=[dict(row) for row in con.execute(f"SELECT * FROM staff_messages WHERE {column}=? ORDER BY id DESC LIMIT 100",(user["u"],))]
+        unread=con.execute("SELECT COUNT(*) FROM staff_messages WHERE recipient=? AND read_at IS NULL",(user["u"],)).fetchone()[0]
+        if box=="sent" and user["r"]=="doctor":
+            for row in con.execute("SELECT * FROM outbound_notifications WHERE doctor_username=? ORDER BY id DESC LIMIT 100",(user["u"],)):
+                messages.append({**dict(row),"id":None,"sender":user["u"],"recipient":row["case_id"],"subject":"Surgery Appointment Confirmation","category":"surgery","read_at":"outbound","delivery_channel":"whatsapp"})
+    with role_connection(DOCTOR_DB_PATH) as con:
+        patients=[dict(row) for row in con.execute("SELECT * FROM patient_profiles WHERE doctor_username=? ORDER BY full_name",(user["u"],))] if user["r"]=="doctor" else []
+        if user["r"]=="doctor":
+            legacy=con.execute(f"SELECT * FROM messages WHERE {column}=? ORDER BY id DESC LIMIT 100",(user["u"],)).fetchall()
+            assigned={patient["case_id"] for patient in patients}
+            for row in legacy:
+                if row["case_id"] in assigned:
+                    messages.append({**dict(row),"id":None,"subject":"Patient message","category":"patient","created_at":row["sent_at"],"read_at":"legacy"})
+    messages.sort(key=lambda row:row["created_at"],reverse=True)
+    return render(request,"mailbox.html",page="inbox",box=box,messages=messages[:100],staff=staff,patients=patients,unread=unread,status=request.query_params.get("status",""),mailbox_path=request.url.path)
+
+
+@app.post("/messages/send")
+def send_mailbox_message(request:Request,recipient:str=Form(...),subject:str=Form(...,min_length=2,max_length=120),body:str=Form(...,min_length=2,max_length=5000),category:str=Form("announcement"),case_id:str=Form(""),csrf:str=Form(...)):
+    user=require_user(request); verify_csrf(request,csrf)
+    if user["r"] not in {"doctor","admin"}: raise HTTPException(403,"Doctor or administrator required.")
+    if not subject.strip() or len(body.strip())<2: raise HTTPException(400,"Enter a subject and message.")
+    if category not in {"announcement","leave","patient","other"}: raise HTTPException(400,"Choose a valid message category.")
+    if recipient.startswith("patient:"):
+        if user["r"]!="doctor": raise HTTPException(403,"Only the assigned doctor may send this patient message.")
+        case_id=recipient.removeprefix("patient:")
+        patient=require_assignment(user,case_id)
+        with role_connection(DOCTOR_DB_PATH) as con:
+            con.execute("INSERT INTO messages(case_id,sender,recipient,body,sent_at,delivery_channel,delivery_status) VALUES(?,?,?,?,?,'local','stored')",(case_id,user["u"],case_id,subject.strip()+"\n\n"+body.strip(),now_iso()))
+    elif recipient.startswith("staff:"):
+        target=recipient.removeprefix("staff:")
+        if case_id: require_assignment(user,case_id)
+        with connection() as con:
+            valid=con.execute("SELECT u.username FROM users u LEFT JOIN doctor_profiles d USING(username) WHERE u.username=? AND (u.role='admin' OR (u.role='doctor' AND d.is_active=1))",(target,)).fetchone()
+            targets=[row[0] for row in con.execute("SELECT username FROM doctor_profiles WHERE is_active=1")] if target=="all_doctors" and user["r"]=="admin" else [valid[0]] if valid else []
+            if not targets: raise HTTPException(400,"Choose an active doctor or administrator.")
+            for target in targets: _staff_message(con,user["u"],target,subject.strip(),body.strip(),category,case_id or None)
+    else: raise HTTPException(400,"Choose a recipient.")
+    with connection() as con: audit(con,user["u"],user["r"],"mailbox_message_sent",case_id or None,f"recipient={recipient}; category={category}; internal message saved")
+    path="/doctor/inbox" if user["r"]=="doctor" else "/admin/messages"
+    status="Message saved in patient communication history." if recipient.startswith("patient:") else "Message saved to the recipient's inbox."
+    return RedirectResponse(path+"?box=sent&status="+quote(status),status_code=303)
+
+
+@app.post("/messages/{message_id}/read")
+def read_mailbox_message(request:Request,message_id:int,csrf:str=Form(...)):
+    user=require_user(request); verify_csrf(request,csrf)
+    with connection() as con:
+        row=con.execute("SELECT recipient FROM staff_messages WHERE id=?",(message_id,)).fetchone()
+        if not row or row[0]!=user["u"]: raise HTTPException(403,"Only the recipient can mark this message read.")
+        con.execute("UPDATE staff_messages SET read_at=? WHERE id=?",(now_iso(),message_id))
+    return RedirectResponse("/doctor/inbox" if user["r"]=="doctor" else "/admin/messages",status_code=303)
 
 
 @app.post("/doctor/messages")
@@ -514,6 +639,8 @@ def submit_leave(request: Request, leave_date: str = Form(...), leave_type: str 
             raise HTTPException(409, "You already have a leave request for this date.")
         con.execute("INSERT INTO leave_requests(doctor_username,leave_date,leave_type,affected_count,created_at) VALUES(?,?,?,?,?)",
             (user["u"],leave_date,leave_type,len({a["case_id"] for a in affected}),now_iso()))
+        for admin in con.execute("SELECT username FROM users WHERE role='admin'"):
+            _staff_message(con,user["u"],admin[0],"Doctor leave request",f"{user['n']} requested {leave_type.replace('_',' ')} leave on {leave_date}. Review affected bookings in the hospital dashboard.","leave")
         audit(con,user["u"],user["r"],"leave_requested",None,f"date={leave_date}; type={leave_type}; affected={len(affected)}")
     return RedirectResponse("/doctor/leave", status_code=303)
 
@@ -541,11 +668,12 @@ def surgery_suggestion(request: Request, case_id: str, csrf: str = Form(...),
 
 @app.post("/doctor/review/{case_id}/surgery", response_class=HTMLResponse)
 def confirm_surgery(request: Request, case_id: str, surgery_date: str = Form(...), slot: str = Form(...), rationale: str = Form(...), csrf: str = Form(...)):
-    user = require_user(request,"doctor"); verify_csrf(request,csrf); require_assignment(user,case_id)
+    user = require_user(request,"doctor"); verify_csrf(request,csrf); patient=require_assignment(user,case_id)
     if len(rationale.strip()) < 8: raise HTTPException(400,"Record your clinical scheduling rationale.")
     with connection() as con:
         con.execute("BEGIN IMMEDIATE")
         try:
+            before=con.execute("SELECT * FROM surgeries WHERE case_id=?",(case_id,)).fetchone()
             reserve_surgery(con,case_id,surgery_date,slot,user["u"],rationale.strip())
         except HTTPException as exc:
             row=_case(con,case_id)
@@ -554,7 +682,23 @@ def confirm_surgery(request: Request, case_id: str, surgery_date: str = Form(...
                 surgery=con.execute("SELECT * FROM surgeries WHERE case_id=?",(case_id,)).fetchone(),
                 capacity=con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone(),suggestion=None,booking_error=exc.detail)
         audit(con,user["u"],user["r"],"surgery_confirmed",case_id,f"doctor-selected date={surgery_date}; slot={slot}; rationale={rationale.strip()}")
-    return RedirectResponse("/calendar?kind=surgery&month="+surgery_date[:7],status_code=303)
+        same=before and before["status"]=="confirmed" and before["surgery_date"]==surgery_date and before["slot"]==slot and before["confirmed_by"]==user["u"]
+        existing=con.execute("SELECT * FROM outbound_notifications WHERE case_id=? AND doctor_username=? AND surgery_date=? AND slot=? ORDER BY id DESC LIMIT 1",(case_id,user["u"],surgery_date,slot)).fetchone() if same else None
+        new_notice=not existing
+        if existing: token=existing["confirmation_token"]
+        else:
+            token=uuid4().hex
+            profile=con.execute("SELECT whatsapp_phone FROM doctor_profiles WHERE username=?",(user["u"],)).fetchone()
+            sender=profile[0] if profile else ""
+            body=communications.surgery_message(patient["full_name"],surgery_date,slot)
+            con.execute("""INSERT INTO outbound_notifications(confirmation_token,case_id,doctor_username,patient_name,recipient_phone,sender_phone,surgery_date,slot,body,delivery_status,created_at)
+                VALUES(?,?,?,?,?,?,?,?,?,'sending',?)""",(token,case_id,user["u"],patient["full_name"],patient["phone"],sender,surgery_date,slot,body,now_iso()))
+    if new_notice:
+        delivery=communications.send_surgery_whatsapp(sender,patient["phone"],patient["full_name"],surgery_date,slot)
+        with connection() as con:
+            con.execute("UPDATE outbound_notifications SET delivery_status=?,delivery_detail=? WHERE confirmation_token=?",(delivery["status"],delivery["detail"],token))
+            audit(con,user["u"],user["r"],"surgery_notification",case_id,f"channel=whatsapp; status={delivery['status']}; confirmation={token}")
+    return RedirectResponse("/calendar?kind=surgery&month="+surgery_date[:7]+"&confirmation="+token,status_code=303)
 
 
 @app.post("/intake")
@@ -634,7 +778,7 @@ def admin_dashboard(request: Request):
         if exc.status_code == 401: return redirect_login("/admin")
         raise
     with connection() as con:
-        doctors = [dict(row) for row in con.execute("SELECT * FROM doctor_profiles ORDER BY display_name")]
+        doctors = [dict(row) for row in con.execute("SELECT d.*,s.email_status,s.email_detail FROM doctor_profiles d LEFT JOIN account_security s USING(username) ORDER BY display_name")]
         leaves = [dict(row) for row in con.execute("SELECT l.*,d.display_name FROM leave_requests l JOIN doctor_profiles d ON d.username=l.doctor_username ORDER BY CASE l.status WHEN 'pending' THEN 0 ELSE 1 END,l.leave_date")]
         capacity = dict(con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone())
         google_requests = con.execute("SELECT * FROM google_access_requests ORDER BY requested_at DESC").fetchall()
@@ -653,34 +797,40 @@ def admin_dashboard(request: Request):
             for event in leave["affected"]:
                 event["alternatives"] = [d for d in doctors if d["username"] != leave["doctor_username"] and doctor_available(con,d["username"],leave["leave_date"],event["slot"])]
     return render(request, "admin.html", page="admin", doctors=doctors, patients=patients, leaves=leaves, capacity=capacity,
-                  surgeries=surgeries, google_requests=google_requests, pending_leave=next((item for item in leaves if item["status"] == "pending"), None))
+                  surgeries=surgeries, google_requests=google_requests, pending_leave=next((item for item in leaves if item["status"] == "pending"), None),account_status=request.query_params.get("account_status",""),email_ready=communications.email_ready(),admin_email=os.getenv("ADMIN_EMAIL","pamindu39@gmail.com"))
 
 
 @app.post("/admin/doctors")
 async def admin_save_doctor(
-    request: Request, username: str = Form(...), display_name: str = Form(...), mobile: str = Form(...),
+    request: Request, username: str = Form(""), display_name: str = Form(...), mobile: str = Form(...),
     work_start: str = Form(...), work_end: str = Form(...), working_days: list[str] = Form(...),
-    whatsapp_phone: str = Form(""), password: str = Form("demo-doctor"), csrf: str = Form(...),
+    whatsapp_phone: str = Form(""), email: str = Form(""), csrf: str = Form(...),
     profile_image: UploadFile | None = File(None), google_email: str = Form(""),
 ):
     user = require_user(request, "admin"); verify_csrf(request, csrf)
     profile_image=await _image_upload(request,profile_image,"profile_image",required=False)
     username = username.strip().lower()
-    if not username.startswith("dr.") or not username.replace(".", "").replace("_", "").isalnum():
+    if username and (not username.startswith("dr.") or not username.replace(".", "").replace("_", "").isalnum()):
         raise HTTPException(400, "Doctor username must begin with dr. and contain only letters, numbers, dots or underscores.")
-    if len(display_name.strip()) < 4 or len(password) < 8:
-        raise HTTPException(400, "Doctor name and a temporary password of at least 8 characters are required.")
+    if len(display_name.strip()) < 4: raise HTTPException(400,"Enter the doctor's full name.")
+    email=email.strip().lower()
+    if email and not communications.valid_email(email): raise HTTPException(400,"Enter a valid doctor email address.")
     valid_time(work_start); valid_time(work_end)
     if work_start >= work_end: raise HTTPException(400,"Working hours must end after they start.")
     image_name = None
     if profile_image and profile_image.filename:
         payload = await profile_image.read(); _, meta = validate_image_bytes(payload)
         ext = {"JPEG":"jpg", "PNG":"png", "WEBP":"webp"}[meta["format"]]
-        image_name = f"{username.replace('.', '_')}_{uuid4().hex[:10]}.{ext}"
+        image_name = f"doctor_{uuid4().hex}.{ext}"
         file_store.write(DOCTOR_IMAGE_DIR / image_name,payload)
     days = ",".join(day for day in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] if day in set(working_days))
+    new_password=None
     with connection() as con:
+        con.execute("BEGIN IMMEDIATE")
+        if not username: username=communications.generated_username(con,display_name)
         existing = con.execute("SELECT username FROM users WHERE username=?", (username,)).fetchone()
+        if not existing and not email: raise HTTPException(400,"The doctor's email address is required for new account registration.")
+        if email and con.execute("SELECT 1 FROM doctor_profiles WHERE lower(email)=? AND username<>?",(email,username)).fetchone(): raise HTTPException(409,"This email is already registered to another doctor.")
         if existing:
             if con.execute("SELECT role FROM users WHERE username=?",(username,)).fetchone()[0] != "doctor":
                 raise HTTPException(409,"This username belongs to another role.")
@@ -688,12 +838,16 @@ async def admin_save_doctor(
             old = con.execute("SELECT profile_image FROM doctor_profiles WHERE username=?", (username,)).fetchone()
             if not image_name and old: image_name = old[0]
         else:
-            con.execute("INSERT INTO users VALUES(?,?,?,?)", (username, display_name.strip(), "doctor", hash_password(password)))
+            new_password=communications.temporary_password()
+            con.execute("INSERT INTO users VALUES(?,?,?,?)", (username, display_name.strip(), "doctor", hash_password(new_password)))
+            account_security.changed(con,username,temporary=True)
         con.execute("""INSERT INTO doctor_profiles(username,display_name,mobile,work_start,work_end,working_days,profile_image,whatsapp_phone)
             VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(username) DO UPDATE SET display_name=excluded.display_name,mobile=excluded.mobile,
             work_start=excluded.work_start,work_end=excluded.work_end,working_days=excluded.working_days,
             profile_image=COALESCE(excluded.profile_image,doctor_profiles.profile_image),whatsapp_phone=excluded.whatsapp_phone""",
             (username, display_name.strip(), mobile.strip(), work_start, work_end, days, image_name, whatsapp_phone.strip()))
+        if email: con.execute("UPDATE doctor_profiles SET email=? WHERE username=?",(email,username))
+        else: email=con.execute("SELECT email FROM doctor_profiles WHERE username=?",(username,)).fetchone()[0]
         audit(con, user["u"], user["r"], "doctor_saved", None, f"Doctor {username} profile and working hours saved.")
         google_email=google_email.strip().lower()
         if google_email and con.execute("SELECT 1 FROM doctor_profiles WHERE lower(google_email)=? AND username<>?",(google_email,username)).fetchone():
@@ -702,9 +856,42 @@ async def admin_save_doctor(
     with role_connection(DOCTOR_DB_PATH) as con:
         con.execute("""INSERT INTO doctor_directory(username,display_name,specialty,hospital,phone,email,working_hours,working_days,profile_image,whatsapp_phone)
             VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(username) DO UPDATE SET display_name=excluded.display_name,phone=excluded.phone,
-            working_hours=excluded.working_hours,working_days=excluded.working_days,profile_image=COALESCE(excluded.profile_image,doctor_directory.profile_image),whatsapp_phone=excluded.whatsapp_phone""",
-            (username, display_name.strip(), "Ophthalmology", "CataTriage Demonstration Hospital", mobile.strip(), f"{username.replace('.', '.')}@example.invalid", f"{work_start}-{work_end}", days, image_name, whatsapp_phone.strip()))
-    return RedirectResponse("/admin", status_code=303)
+            working_hours=excluded.working_hours,working_days=excluded.working_days,profile_image=COALESCE(excluded.profile_image,doctor_directory.profile_image),whatsapp_phone=excluded.whatsapp_phone,email=excluded.email""",
+            (username, display_name.strip(), "Ophthalmology", "CataTriage Demonstration Hospital", mobile.strip(), email, f"{work_start}-{work_end}", days, image_name, whatsapp_phone.strip()))
+    status="Doctor profile updated."
+    if new_password:
+        delivery=communications.send_credentials(email,username,new_password)
+        _record_login_email(username,delivery,user)
+        status=f"Registered {username}. "+delivery["detail"]
+    return RedirectResponse("/admin?account_status="+quote(status), status_code=303)
+
+
+def _record_login_email(username,delivery,admin):
+    with connection() as con:
+        con.execute("INSERT OR IGNORE INTO account_security(username) VALUES(?)",(username,))
+        con.execute("UPDATE account_security SET email_status=?,email_detail=?,last_emailed_at=? WHERE username=?",(delivery["status"],delivery["detail"],now_iso(),username))
+        audit(con,admin["u"],admin["r"],"doctor_login_email",None,f"doctor={username}; status={delivery['status']}; credentials excluded from audit")
+
+
+@app.post("/admin/doctors/{username}/login-email")
+def resend_doctor_login(request:Request,username:str,csrf:str=Form(...)):
+    user=require_user(request,"admin"); verify_csrf(request,csrf)
+    if not communications.email_ready(): raise HTTPException(503,"Connect the admin Gmail sender before issuing a new temporary password. Existing login credentials have not changed.")
+    password=communications.temporary_password()
+    with connection() as con:
+        profile=con.execute("SELECT * FROM doctor_profiles WHERE username=? AND is_active=1",(username,)).fetchone()
+        if not profile or not communications.valid_email(profile["email"]): raise HTTPException(400,"Save a valid registered doctor email before sending new login credentials.")
+        previous=con.execute("SELECT password_hash FROM users WHERE username=?",(username,)).fetchone()[0]
+    delivery=communications.send_credentials(profile["email"],username,password)
+    if delivery["status"]=="accepted":
+        with connection() as con:
+            con.execute("BEGIN IMMEDIATE")
+            changed=con.execute("UPDATE users SET password_hash=? WHERE username=? AND password_hash=?",(hash_password(password),username,previous))
+            if changed.rowcount!=1: raise HTTPException(409,"The password changed while the email was being sent. The emailed temporary password is inactive; request a fresh login email.")
+            account_security.changed(con,username,temporary=True)
+    else: delivery={**delivery,"detail":delivery["detail"]+" Existing login credentials have not changed."}
+    _record_login_email(username,delivery,user)
+    return RedirectResponse("/admin?account_status="+quote(delivery["detail"]),status_code=303)
 
 
 @app.get("/doctor-profile/{username}")
@@ -813,6 +1000,7 @@ def admin_leave_status(request: Request, leave_id: int, status: str = Form(...),
         if status=="resolved" and affected_bookings(con,leave["doctor_username"],leave["leave_date"],leave["leave_type"]):
             raise HTTPException(409,"Reassign or reschedule affected bookings before resolving the leave request.")
         con.execute("UPDATE leave_requests SET status=? WHERE id=?", (status, leave_id))
+        _staff_message(con,user["u"],leave["doctor_username"],"Leave request "+status,f"Your {leave['leave_type'].replace('_',' ')} leave request for {leave['leave_date']} was marked {status} by the hospital admin.","leave")
         audit(con, user["u"], user["r"], "leave_status_changed", None, f"leave={leave_id}; status={status}")
     return RedirectResponse("/admin", status_code=303)
 
@@ -864,6 +1052,10 @@ def calendar_page(request: Request, kind: str = "meeting", month: str = ""):
         meetings=[dict(r) for r in con.execute("SELECT a.*,c.patient_alias,c.approved_tier FROM appointments a JOIN cases c USING(case_id) ORDER BY scheduled_date,slot")]
         surgeries=[dict(r) for r in con.execute("SELECT s.*,s.surgery_date scheduled_date,c.patient_alias,c.approved_tier FROM surgeries s JOIN cases c USING(case_id) WHERE s.status='confirmed' ORDER BY surgery_date,slot")]
         capacity=con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone()
+        token=request.query_params.get("confirmation","")
+        notice=con.execute("SELECT * FROM outbound_notifications WHERE confirmation_token=? AND doctor_username=?",(token,user["u"])).fetchone() if token else None
+        surgery_confirmation=dict(notice) if notice else None
+        if surgery_confirmation: surgery_confirmation["manual_link"]=communications.whatsapp_link(notice["recipient_phone"],notice["body"])
     with role_connection(DOCTOR_DB_PATH) as con:
         assignments={r["case_id"]:dict(r) for r in con.execute("SELECT * FROM patient_profiles")}
     for items in [meetings,surgeries]:
@@ -880,7 +1072,7 @@ def calendar_page(request: Request, kind: str = "meeting", month: str = ""):
     previous=(first-timedelta(days=1)).strftime("%Y-%m")
     following=(first.replace(day=28)+timedelta(days=4)).strftime("%Y-%m")
     return render(request,"schedule_calendar.html",page="calendar",appointments=meetings,surgeries=surgeries,kind=kind,month=first,
-        weeks=weeks,grouped=grouped,events=events,previous=previous,following=following,capacity=capacity)
+        weeks=weeks,grouped=grouped,events=events,previous=previous,following=following,capacity=capacity,surgery_confirmation=surgery_confirmation)
 
 
 @app.get("/model", response_class=HTMLResponse)

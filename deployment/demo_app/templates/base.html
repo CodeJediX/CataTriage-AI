@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/responsive.css">
   <link rel="stylesheet" href="/static/app-extra.css">
   <link rel="stylesheet" href="/static/simulation.css">
-  <link rel="stylesheet" href="/static/hospital.css?v=20261027-clinical">
+  <link rel="stylesheet" href="/static/hospital.css?v=20261027-inbox">
   <script src="/static/cloud-uploads.js" defer></script>
   <script src="/static/app.js" defer></script>
 </head>
@@ -21,6 +21,7 @@
   <nav aria-label="Primary">
     <a class="{{ 'active' if page=='overview' }}" href="/">Overview</a>
     {% if user.r == 'doctor' %}<a class="{{ 'active' if page=='doctor' }}" href="/doctor">Doctor workspace</a>{% endif %}
+    {% if user.r in ['doctor','admin'] %}<a class="{{ 'active' if page=='inbox' }}" href="{{ '/doctor/inbox' if user.r=='doctor' else '/admin/messages' }}">Inbox &amp; sent</a>{% endif %}
     {% if user.r == 'doctor' %}<a class="{{ 'active' if page=='leave' }}" href="/doctor/leave">Leave requests</a>{% endif %}
     {% if user.r == 'admin' %}<a class="{{ 'active' if page=='admin' }}" href="/admin">Hospital dashboard</a>{% endif %}
     {% if user.r == 'technician' %}<a class="{{ 'active' if page=='support' }}" href="/support">Capture &amp; support</a>{% endif %}
@@ -35,6 +36,7 @@
   <div class="sidebar-foot">
     <span class="role-chip">{{ user.r }}</span>
     <strong>{{ user.n }}</strong><small>{{ user.u }}</small>
+    {% if user.r=='doctor' %}<a class="account-link" href="/login/doctor/password">Change password</a>{% endif %}
     <form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="link-button">Sign out</button></form>
   </div>
 </aside>
