@@ -4,12 +4,24 @@
     "sha256": "3b18bda8d40bccf40b309d3ec8fe57412c995cb29c2d41ddf86b80eed0240899"
   },
   {
+    "path": "deployment/demo_app/cloud_database.py",
+    "sha256": "60ffb3a15cdd4b55eac706848eb09ed2fcf23a5f0376a51ebdd96c18a1b04a12"
+  },
+  {
+    "path": "deployment/demo_app/cloud_uploads.py",
+    "sha256": "262415554f7f1c181d34def7cb10b6d8300141fb2017c6cfb46427cd85c4ad5d"
+  },
+  {
     "path": "deployment/demo_app/database.py",
-    "sha256": "e7c365102f791a8d1542f442b38c21320f98f274052f97ae9f11ae96c65a0b9f"
+    "sha256": "c3531e665910956e80d92822b8b93f5c7d946f9ae836c237d870c3434470ae81"
   },
   {
     "path": "deployment/demo_app/eye_summary.py",
     "sha256": "6ac0b34fc03945d6094fc42df3dc1ae8ac903878024f8a5a7ce40c0f6745b3c7"
+  },
+  {
+    "path": "deployment/demo_app/file_store.py",
+    "sha256": "50fb836ce6ddb322e58b10faf57746f8592365ec903f4ee98cf2b7ad8a09e74b"
   },
   {
     "path": "deployment/demo_app/google_auth.py",
@@ -21,7 +33,7 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "aad53f09e451a3e964197dd551cf2ae6cde4461a822db15c9e9eaf35310c0612"
+    "sha256": "298d8984ee1b8622d5c5938bf93b2bea557dbbb8d27080d277c54021658d3daa"
   },
   {
     "path": "deployment/demo_app/model_provider.py",
@@ -33,11 +45,15 @@
   },
   {
     "path": "deployment/demo_app/role_databases.py",
-    "sha256": "34a1eebf6a9db0face764188de12046926aae49d18fbdeb241b4bd94e793e2cb"
+    "sha256": "b55535469dc94f5a24ba5e2b2835a8c86053c1379a256a19c309927c83e23b5c"
   },
   {
     "path": "deployment/demo_app/settings.py",
     "sha256": "2af51a746322dffffe3c13cef85481acc25c389c3a2b11b543f3c4b101310c4c"
+  },
+  {
+    "path": "deployment/demo_app/supabase-ca.crt",
+    "sha256": "700723581420dd1ac98fd7e9ac529f0ef210eadcaf87fc868a3ad7d114c2f3b7"
   },
   {
     "path": "deployment/demo_app/synthetic_models.py",
@@ -58,6 +74,10 @@
   {
     "path": "deployment/demo_app/static/app.js",
     "sha256": "8f9553fc9bd1fb6b78fbb88f7b301893f99cd77f4a94bbae4e419357fa74c58e"
+  },
+  {
+    "path": "deployment/demo_app/static/cloud-uploads.js",
+    "sha256": "046f819e858df239dc6bb95b2919611fc0a8a8bcc3494a7b4202057cfd2f564d"
   },
   {
     "path": "deployment/demo_app/static/favicon.svg",
@@ -89,7 +109,7 @@
   },
   {
     "path": "deployment/demo_app/templates/base.html",
-    "sha256": "12d159bd80fbd74975ae2f8a43dfd94da17d9e927b5f97f12b7c95d5f8423ff0"
+    "sha256": "4140d9758a5bef743803434f60c8ccfce13dff022136e13fa1ed3553e59837be"
   },
   {
     "path": "deployment/demo_app/templates/calendar.html",

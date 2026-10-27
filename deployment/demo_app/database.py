@@ -7,9 +7,10 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from . import cloud_database
 
 APP_DIR = Path(__file__).resolve().parent
-DATA_DIR = APP_DIR / "data"
+DATA_DIR = Path(os.getenv("CATATRIAGE_DATA_DIR", str(APP_DIR / "data")))
 UPLOAD_DIR = DATA_DIR / "uploads"
 DOCTOR_IMAGE_DIR = DATA_DIR / "doctor_profiles"
 DB_PATH = DATA_DIR / "hospital_admin.sqlite3"
@@ -46,6 +47,10 @@ def verify_password(password: str, encoded: str) -> bool:
 
 @contextmanager
 def connection(db_path: Path | str = DB_PATH):
+    if cloud_database.enabled() and Path(db_path)==DB_PATH:
+        with cloud_database.connection("hospital") as con:
+            yield con
+        return
     con = sqlite3.connect(str(db_path))
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA foreign_keys=ON")
@@ -198,6 +203,12 @@ def audit(con: sqlite3.Connection, actor: str, role: str, action: str, case_id: 
 
 
 def initialize_database(db_path: Path | str = DB_PATH, force_reset: bool = False) -> None:
+    if cloud_database.enabled() and Path(db_path)==DB_PATH:
+        if force_reset: raise RuntimeError("Cloud database reset requires an explicit migration.")
+        with connection() as con:
+            if not con.execute("SELECT version FROM schema_version LIMIT 1").fetchone():
+                raise RuntimeError("Cloud database migrations have not been applied.")
+        return
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     DOCTOR_IMAGE_DIR.mkdir(parents=True, exist_ok=True)

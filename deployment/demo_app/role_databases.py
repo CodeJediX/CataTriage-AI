@@ -6,6 +6,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from .database import DATA_DIR, LEGACY_ALIASES, SEED_CASES, now_iso
+from . import cloud_database
 
 DOCTOR_DB_PATH = DATA_DIR / "doctor_portal.sqlite3"
 TECHNICIAN_DB_PATH = DATA_DIR / "technician_support.sqlite3"
@@ -13,6 +14,11 @@ TECHNICIAN_DB_PATH = DATA_DIR / "technician_support.sqlite3"
 
 @contextmanager
 def role_connection(path: Path):
+    if cloud_database.enabled() and path in {DOCTOR_DB_PATH, TECHNICIAN_DB_PATH}:
+        namespace="doctor" if path==DOCTOR_DB_PATH else "technician"
+        with cloud_database.connection(namespace) as con:
+            yield con
+        return
     con = sqlite3.connect(path)
     con.row_factory = sqlite3.Row
     try:
@@ -85,6 +91,9 @@ def sync_doctor_directory() -> None:
 
 
 def initialize_role_databases(force_reset: bool = False) -> None:
+    if cloud_database.enabled():
+        if force_reset: raise RuntimeError("Cloud database reset is disabled.")
+        return
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     with role_connection(DOCTOR_DB_PATH) as con:
         con.executescript(DOCTOR_SCHEMA)

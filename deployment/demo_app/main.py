@@ -31,6 +31,8 @@ from .hospital import affected_bookings, doctor_available, leave_covers, require
 from .google_auth import enabled as google_enabled, router as google_router
 from .settings import load_local_config, advisory_settings
 from agents.workflow import run_workflow
+from . import cloud_database, file_store
+from .cloud_uploads import router as upload_router, restore as restore_uploads
 
 APP_DIR = Path(__file__).resolve().parent
 ROOT = APP_DIR.parents[1]
@@ -59,10 +61,25 @@ app = FastAPI(
 )
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.include_router(google_router)
+app.include_router(upload_router)
 templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 
+async def _image_upload(request, image, field="image", required=True):
+    restored=await restore_uploads(request)
+    uploads=restored.get(field,[])
+    if uploads:
+        if image and image.filename or len(uploads)!=1: raise HTTPException(400,"Select one image for this action.")
+        image=uploads[0]
+    if required and (not image or not image.filename): raise HTTPException(400,"Select an image.")
+    return image
+
+
 def _secret() -> bytes:
+    configured=os.getenv("CATATRIAGE_SESSION_SECRET", "")
+    if configured:
+        if len(configured)<32: raise RuntimeError("Session secret must contain at least 32 characters.")
+        return configured.encode()
     SECRET_PATH.parent.mkdir(parents=True, exist_ok=True)
     if not SECRET_PATH.exists():
         SECRET_PATH.write_text(secrets.token_hex(32), encoding="ascii")
@@ -122,7 +139,8 @@ def render(request: Request, name: str, **context) -> HTMLResponse:
     response_status = int(context.pop("response_status", 200))
     response = templates.TemplateResponse(request, name, {"user": read_session(request), "csrf": csrf, "today": date.today(),
         "google_enabled":google_enabled(), "google_pending":request.query_params.get("google_status")=="pending",
-        "hosted":os.getenv("CATATRIAGE_HOSTED")=="true", "ephemeral":os.getenv("CATATRIAGE_EPHEMERAL")=="true", **context}, status_code=response_status)
+        "hosted":os.getenv("CATATRIAGE_HOSTED")=="true", "ephemeral":os.getenv("CATATRIAGE_EPHEMERAL")=="true",
+        "cloud_database":cloud_database.enabled(), **context}, status_code=response_status)
     if not request.cookies.get("catatriage_csrf"):
         response.set_cookie("catatriage_csrf", csrf, httponly=True, samesite="strict", secure=request.url.scheme=="https")
     response.headers["Cache-Control"] = "no-store"
@@ -249,6 +267,7 @@ async def new_case(
         return render(request, "new_case.html", page="new", error="Use a fictional ID beginning with DEMO-.")
     if modality not in {"fundus", "slit_lamp"} or eye not in {"Left","Right","Both","Not recorded"} or not (1 <= age <= 110):
         raise HTTPException(400, "Invalid case fields")
+    image=await _image_upload(request,image,required=False)
     payload = await image.read() if image and image.filename else b""
     image_path = image_hash = None
     analysis = None
@@ -257,7 +276,7 @@ async def new_case(
         ext = {"JPEG":"jpg", "PNG":"png", "WEBP":"webp"}[image_meta["format"]]
         filename = f"{uuid4().hex}.{ext}"
         target = UPLOAD_DIR / filename
-        target.write_bytes(payload)
+        file_store.write(target,payload)
         image_path = str(target.relative_to(APP_DIR)).replace("\\", "/")
         image_hash = hashlib.sha256(payload).hexdigest()
         context = {"eye_side": eye if eye in {"Left", "Right"} else "Not recorded", "reflection": int(bool(reflection)),
@@ -271,7 +290,7 @@ async def new_case(
                 (case_id, patient_alias.strip(), age, eye, modality, symptoms.strip(), notes.strip(), image_path, image_hash, analysis["status"] if analysis else "not_run", json.dumps(analysis) if analysis else None))
         except Exception as exc:
             if image_path:
-                (APP_DIR / image_path).unlink(missing_ok=True)
+                file_store.delete(APP_DIR / image_path)
             if "UNIQUE" in str(exc):
                 return render(request, "new_case.html", page="new", error="That fictional case ID already exists.")
             raise
@@ -307,9 +326,10 @@ def case_detail(request: Request, case_id: str):
 
 @app.post("/cases/{case_id}/analysis")
 async def analyze_case(request: Request, case_id: str, modality: str = Form(...), illumination_type: str = Form("Diffuse Illumination"),
-                       reflection: int = Form(0), csrf: str = Form(...), image: UploadFile = File(...), eye_side: str = Form("Not recorded")):
+                       reflection: int = Form(0), csrf: str = Form(...), image: UploadFile | None = File(None), eye_side: str = Form("Not recorded")):
     user = require_user(request); verify_csrf(request, csrf)
     require_assignment(user, case_id)
+    image=await _image_upload(request,image)
     with connection() as con:
         row = _case(con, case_id)
     if modality != row["modality"]:
@@ -326,7 +346,7 @@ async def analyze_case(request: Request, case_id: str, modality: str = Form(...)
     ext = {"JPEG":"jpg", "PNG":"png", "WEBP":"webp"}[image_meta["format"]]
     filename = f"{uuid4().hex}.{ext}"
     target = UPLOAD_DIR / filename
-    target.write_bytes(payload)
+    file_store.write(target,payload)
     digest = hashlib.sha256(payload).hexdigest()
     with connection() as con:
         previous = con.execute("SELECT image_path FROM cases WHERE case_id=?", (case_id,)).fetchone()[0]
@@ -424,8 +444,9 @@ def support_dashboard(request: Request):
 
 
 @app.post("/support/quality-check")
-async def support_quality_check(request: Request, case_id: str = Form(...), image: UploadFile = File(...), csrf: str = Form(...)):
+async def support_quality_check(request: Request, case_id: str = Form(...), image: UploadFile | None = File(None), csrf: str = Form(...)):
     user = require_user(request, "technician"); verify_csrf(request, csrf)
+    image=await _image_upload(request,image)
     payload = await image.read()
     _, meta = validate_image_bytes(payload)
     width, height = int(meta["width"]), int(meta["height"])
@@ -536,6 +557,10 @@ async def registered_intake(request: Request, case_id: str = Form(...), modality
     patient=require_assignment(user,case_id)
     if not patient: raise HTTPException(400,"Select a registered patient.")
     if modality not in {"fundus","slit_lamp"}: raise HTTPException(400,"Choose a supported modality.")
+    restored=await restore_uploads(request)
+    left_images=left_images+restored.get("left_images",[])
+    right_images=right_images+restored.get("right_images",[])
+    unknown_images=unknown_images+restored.get("unknown_images",[])
     incoming=[(eye,f) for eye,group in [("Left",left_images),("Right",right_images),("Not recorded",unknown_images)] for f in group if f.filename]
     if len(incoming)>12: raise HTTPException(400,"Upload at most 12 images per intake.")
     prepared=[]
@@ -553,7 +578,7 @@ async def registered_intake(request: Request, case_id: str = Form(...), modality
         _case(con,case_id)
         con.execute("UPDATE cases SET modality=?,symptoms=?,notes=?,status='awaiting_review' WHERE case_id=?",(modality,symptoms.strip(),notes.strip(),case_id))
         for eye,payload,ext,result in prepared:
-            target=UPLOAD_DIR/(uuid4().hex+"."+ext); target.write_bytes(payload)
+            target=UPLOAD_DIR/(uuid4().hex+"."+ext); file_store.write(target,payload)
             relative=str(target.relative_to(APP_DIR)).replace(chr(92),"/")
             digest=hashlib.sha256(payload).hexdigest()
             con.execute("INSERT INTO case_images(case_id,eye_side,image_path,image_sha256,analysis_json,uploaded_by,created_at) VALUES(?,?,?,?,?,?,?)",
@@ -579,8 +604,9 @@ def clinical_image(request: Request, image_id: int):
     if not row: raise HTTPException(404,"Image not found")
     require_assignment(user,row["case_id"])
     target=(APP_DIR/row["image_path"]).resolve()
-    if not target.is_relative_to(UPLOAD_DIR.resolve()) or not target.is_file(): raise HTTPException(404,"Image not found")
-    return Response(target.read_bytes(),media_type={".jpg":"image/jpeg",".png":"image/png",".webp":"image/webp"}[target.suffix],headers={"Cache-Control":"no-store"})
+    if not target.is_relative_to(UPLOAD_DIR.resolve()) or not file_store.exists(target): raise HTTPException(404,"Image not found")
+    payload,media_type=file_store.display_bytes(target)
+    return Response(payload,media_type=media_type,headers={"Cache-Control":"no-store"})
 
 
 @app.get("/admin", response_class=HTMLResponse)
@@ -621,6 +647,7 @@ async def admin_save_doctor(
     profile_image: UploadFile | None = File(None), google_email: str = Form(""),
 ):
     user = require_user(request, "admin"); verify_csrf(request, csrf)
+    profile_image=await _image_upload(request,profile_image,"profile_image",required=False)
     username = username.strip().lower()
     if not username.startswith("dr.") or not username.replace(".", "").replace("_", "").isalnum():
         raise HTTPException(400, "Doctor username must begin with dr. and contain only letters, numbers, dots or underscores.")
@@ -633,7 +660,7 @@ async def admin_save_doctor(
         payload = await profile_image.read(); _, meta = validate_image_bytes(payload)
         ext = {"JPEG":"jpg", "PNG":"png", "WEBP":"webp"}[meta["format"]]
         image_name = f"{username.replace('.', '_')}_{uuid4().hex[:10]}.{ext}"
-        (DOCTOR_IMAGE_DIR / image_name).write_bytes(payload)
+        file_store.write(DOCTOR_IMAGE_DIR / image_name,payload)
     days = ",".join(day for day in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] if day in set(working_days))
     with connection() as con:
         existing = con.execute("SELECT username FROM users WHERE username=?", (username,)).fetchone()
@@ -670,9 +697,9 @@ def doctor_profile_image(request: Request, username: str):
         row = con.execute("SELECT profile_image FROM doctor_profiles WHERE username=?", (username,)).fetchone()
     if not row or not row[0]: raise HTTPException(404, "Profile image not found")
     target = (DOCTOR_IMAGE_DIR / row[0]).resolve()
-    if not target.is_relative_to(DOCTOR_IMAGE_DIR.resolve()) or not target.exists(): raise HTTPException(404, "Profile image not found")
-    media = {".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".png":"image/png", ".webp":"image/webp"}.get(target.suffix.lower(), "application/octet-stream")
-    return Response(target.read_bytes(), media_type=media, headers={"Cache-Control":"private, max-age=3600"})
+    if not target.is_relative_to(DOCTOR_IMAGE_DIR.resolve()) or not file_store.exists(target): raise HTTPException(404, "Profile image not found")
+    payload,media=file_store.display_bytes(target)
+    return Response(payload,media_type=media,headers={"Cache-Control":"no-store"})
 
 
 @app.post("/admin/patients")
@@ -880,9 +907,10 @@ def real_lab_tabular(
 async def real_lab_fusion(
     request: Request, eye_side: str = Form("Right"), reflection: int = Form(0),
     image_quality: str = Form("Good"), illumination_type: str = Form("Diffuse Illumination"),
-    image: UploadFile = File(...), csrf: str = Form(...),
+    image: UploadFile | None = File(None), csrf: str = Form(...),
 ):
     require_user(request); verify_csrf(request, csrf)
+    image=await _image_upload(request,image)
     context = {"eye_side": eye_side, "reflection": int(bool(reflection)), "image_quality": image_quality,
                "slit_lamp_illumination_type": illumination_type}
     result = real_provider.analyze_fusion(await image.read(), "slit_lamp", context)
@@ -1012,8 +1040,9 @@ def reset_demo(request: Request, confirmation: str = Form(...), csrf: str = Form
 
 
 @app.post("/api/analyze")
-async def api_analyze(request: Request, modality: str = Form(...), image: UploadFile = File(...), csrf: str = Form(...)):
+async def api_analyze(request: Request, modality: str = Form(...), image: UploadFile | None = File(None), csrf: str = Form(...)):
     require_user(request); verify_csrf(request, csrf)
+    image=await _image_upload(request,image)
     if modality not in {"fundus", "slit_lamp"}: raise HTTPException(400, "Unsupported modality")
     try:
         payload = await image.read()
