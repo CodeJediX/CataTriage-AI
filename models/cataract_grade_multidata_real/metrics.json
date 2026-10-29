@@ -1,7 +1,7 @@
 {
   "model_name": "Real multi-data cataract grade model",
   "status": "research_only_not_clinically_validated",
-  "created_at_utc": "2026-10-26T14:14:58+00:00",
+  "created_at_utc": "2026-10-29T19:41:28.467868+00:00",
   "source": {
     "path": "E:\\Eye Project\\data sets\\Eye_Datasets_Organized\\01_multimodal_collections\\catatriage_ai\\02_Clinical_Tabular\\01_Cataract_Risk_and_Grading\\10.5061_dryad.gt410__new PONE-D-15-08786 original data set.xls",
     "doi": "10.5061/dryad.gt410",
@@ -86,13 +86,115 @@
   "gpu_name": "NVIDIA GeForce RTX 2050",
   "seed": 20261026,
   "selected_hyperparameters": {
-    "hidden": 192,
-    "dropout": 0.3,
-    "lr": 0.0006,
-    "weight_decay": 0.0005
+    "tree_weight": 0.75,
+    "tree_config": {
+      "run": 3,
+      "config": {
+        "depth": 4,
+        "l2_leaf_reg": 8,
+        "balanced": true
+      },
+      "trees": 896,
+      "cv_macro_f1": 0.5893930178387085,
+      "validation": {
+        "accuracy": 0.5369127516778524,
+        "balanced_accuracy": 0.5410294056654639,
+        "macro_f1": 0.5453096317934375,
+        "per_class_recall": [
+          0.64,
+          0.47368421052631576,
+          0.5185185185185185,
+          0.5319148936170213
+        ],
+        "quadratic_weighted_kappa": 0.7102960671674767,
+        "grade_mae": 0.5033557046979866
+      },
+      "selection_score": 0.567351324816073
+    }
   },
-  "epochs": 55,
+  "epochs": "896 boosted trees; existing neural checkpoint retained",
   "metrics": {
+    "train": {
+      "accuracy": 0.7079136690647482,
+      "balanced_accuracy": 0.7221109000688534,
+      "macro_f1": 0.7159779244481148,
+      "per_class_recall": [
+        0.7348703170028819,
+        0.6235827664399093,
+        0.7236842105263158,
+        0.8063063063063063
+      ],
+      "quadratic_weighted_kappa": 0.8204551303831108,
+      "grade_mae": 0.32158273381294966
+    },
+    "validation": {
+      "accuracy": 0.5436241610738255,
+      "balanced_accuracy": 0.5519146171180512,
+      "macro_f1": 0.5528446880059784,
+      "per_class_recall": [
+        0.6533333333333333,
+        0.47368421052631576,
+        0.5061728395061729,
+        0.574468085106383
+      ],
+      "quadratic_weighted_kappa": 0.7141293154842556,
+      "grade_mae": 0.5
+    },
+    "test": {
+      "accuracy": 0.5604026845637584,
+      "balanced_accuracy": 0.5738215786708695,
+      "macro_f1": 0.5667069884982148,
+      "per_class_recall": [
+        0.7066666666666667,
+        0.4574468085106383,
+        0.5061728395061729,
+        0.625
+      ],
+      "quadratic_weighted_kappa": 0.6977562510349395,
+      "grade_mae": 0.5100671140939598
+    }
+  },
+  "test_confusion_matrix": [
+    [
+      53,
+      15,
+      6,
+      1
+    ],
+    [
+      19,
+      43,
+      24,
+      8
+    ],
+    [
+      4,
+      20,
+      41,
+      16
+    ],
+    [
+      0,
+      1,
+      17,
+      30
+    ]
+  ],
+  "limitations": [
+    "This is a retrospective single-population research benchmark, not a diagnostic device.",
+    "The target is a derived patient-level maximum; it is not an independent adjudicated outcome.",
+    "No external validation, calibration study, subgroup safety study, or prospective clinical evaluation was performed.",
+    "Predictions must never assign treatment or urgency and require clinician review.",
+    "Only a small validation improvement was found; more training does not manufacture missing clinical information.",
+    "Partially entered web forms use training-set medians. Full-record benchmark accuracy does not establish performance on incomplete records."
+  ],
+  "model_version": "v2",
+  "model_id": "cataract_grade_multidata_real_v2",
+  "test_accuracy_bootstrap_95ci": [
+    0.5067114093959731,
+    0.6174496644295302
+  ],
+  "baseline_metrics": {
     "train": {
       "accuracy": 0.6388489208633094,
       "balanced_accuracy": 0.6642765584855139,
@@ -115,36 +217,26 @@
       "grade_mae": 0.540268456375839
     }
   },
-  "test_confusion_matrix": [
-    [
-      52,
-      16,
-      6,
-      1
-    ],
-    [
-      20,
-      37,
-      29,
-      8
-    ],
-    [
-      5,
-      18,
-      41,
-      17
-    ],
-    [
-      1,
-      0,
-      17,
-      30
-    ]
-  ],
-  "limitations": [
-    "This is a retrospective single-population research benchmark, not a diagnostic device.",
-    "The target is a derived patient-level maximum; it is not an independent adjudicated outcome.",
-    "No external validation, calibration study, subgroup safety study, or prospective clinical evaluation was performed.",
-    "Predictions must never assign treatment or urgency and require clinician review."
-  ]
+  "test_accuracy_change_points": 2.348993288590606,
+  "test_reuse_note": "Historical test sets reused once after selections were sealed, not a new external validation. No test predictions were used to select candidates or epochs.",
+  "inference_evaluation": "CPU float32, matching hosted inference",
+  "selection_lock": {
+    "sealed_at_utc": "2026-10-29T19:41:28.383893+00:00",
+    "test_predictions_used_for_selection": false,
+    "files": {
+      "grade": {
+        "path": "grade\\selected_model.pt",
+        "sha256": "76cfd554466e33bc87cf86ce7917576dda2cfe103b0cb3c9d20c22beec8dc1a9"
+      },
+      "fusion": {
+        "path": "fusion\\final_selected_model.pt",
+        "sha256": "f31d551463ebf520d71e7cd4b65182f6a4bba06be9de102e93d1ee2910441f9b"
+      }
+    }
+  },
+  "tuning_summary": "Training/validation-selected model blend. Historical test used once for final non-regression check; no further tuning after test results.",
+  "uncertainty_note": "Small measured improvement; intervals are wide and no statistical superiority or clinical validation is established.",
+  "architecture": "GPU CatBoost numerical ensemble (75%) + existing grade neural network (25%).",
+  "input_features": 44,
+  "engineered_features": 97
 }

@@ -1,7 +1,7 @@
 {
   "model_name": "Real CatScreen image-context fusion CNN",
   "status": "research_only_not_clinically_validated",
-  "created_at_utc": "2026-10-26T14:31:15+00:00",
+  "created_at_utc": "2026-10-29T19:41:28.467868+00:00",
   "source": {
     "name": "CatScreen official public sample snapshot",
     "official_page": "https://www.iab-rubric.org/resources/healthcare-datasets/catscreen",
@@ -11,7 +11,7 @@
     "license_note": "Public sample obtained from the official dataset page; full release is governed by the CatScreen institutional research license."
   },
   "target": "Three CatScreen diagnostic screening labels: normal, cataract, or other ocular condition.",
-  "architecture": "ImageNet-pretrained MobileNetV3-Small image encoder fused with a 9-value context branch.",
+  "architecture": "Probability blend: existing MobileNetV3-Small context CNN (75%) + pretrained ResNet-18 context CNN (25%).",
   "context": "Laterality plus acquisition/quality context (reflection, image quality, illumination type). The public snapshot does not include the full patient clinical metadata, so this is not a complete clinical-fusion validation.",
   "split_strategy": "Official train/validation/test files; verified zero participant-ID overlap.",
   "participant_overlap": {
@@ -49,9 +49,74 @@
   "device": "cuda",
   "gpu_name": "NVIDIA GeForce RTX 2050",
   "seed": 20261026,
-  "best_epoch": 10,
-  "epochs_run": 24,
+  "best_epoch": "Validation-selected blend; overfitted fine-tuning rejected",
+  "epochs_run": 10,
   "metrics": {
+    "train": {
+      "accuracy": 0.7214285714285714,
+      "balanced_accuracy": 0.752991452991453,
+      "macro_f1": 0.7158855949491386,
+      "per_class_recall": {
+        "normal": 0.6,
+        "cataract": 0.6923076923076923,
+        "other": 0.9666666666666667
+      }
+    },
+    "validation": {
+      "accuracy": 0.65,
+      "balanced_accuracy": 0.7000000000000001,
+      "macro_f1": 0.6556743909685087,
+      "per_class_recall": {
+        "normal": 0.6,
+        "cataract": 0.5,
+        "other": 1.0
+      }
+    },
+    "test": {
+      "accuracy": 0.55,
+      "balanced_accuracy": 0.6018518518518519,
+      "macro_f1": 0.479296066252588,
+      "per_class_recall": {
+        "normal": 0.25,
+        "cataract": 0.5555555555555556,
+        "other": 1.0
+      }
+    }
+  },
+  "test_confusion_matrix": [
+    [
+      2,
+      4,
+      2
+    ],
+    [
+      4,
+      15,
+      8
+    ],
+    [
+      0,
+      0,
+      5
+    ]
+  ],
+  "limitations": [
+    "The held-out test contains only 40 images from 37 participants; uncertainty is large.",
+    "The public snapshot does not include the full patient metadata described for the licensed release, so the structured branch uses laterality and acquisition context only.",
+    "Image quality and acquisition settings may encode site/device shortcuts and require external validation.",
+    "No calibration, subgroup safety study, prospective evaluation, or clinical validation was performed.",
+    "Predictions must not assign diagnosis, treatment, referral urgency, or workflow priority.",
+    "Normal-class recall remains only 25% on eight normal test images.",
+    "The original training metric used random augmentation; the new training score uses deterministic evaluation, so those training scores are not directly comparable.",
+    "A 99% training-accuracy candidate was rejected due to validation overfitting."
+  ],
+  "model_version": "v2",
+  "model_id": "clinical_fusion_catscreen_real_v2",
+  "test_accuracy_bootstrap_95ci": [
+    0.375,
+    0.7143772893772888
+  ],
+  "baseline_metrics": {
     "train": {
       "accuracy": 0.7571428571428571,
       "balanced_accuracy": 0.7498575498575498,
@@ -83,28 +148,33 @@
       }
     }
   },
-  "test_confusion_matrix": [
-    [
-      1,
-      4,
-      3
-    ],
-    [
-      3,
-      15,
-      9
-    ],
-    [
-      0,
-      0,
-      5
-    ]
-  ],
-  "limitations": [
-    "The held-out test contains only 40 images from 37 participants; uncertainty is large.",
-    "The public snapshot does not include the full patient metadata described for the licensed release, so the structured branch uses laterality and acquisition context only.",
-    "Image quality and acquisition settings may encode site/device shortcuts and require external validation.",
-    "No calibration, subgroup safety study, prospective evaluation, or clinical validation was performed.",
-    "Predictions must not assign diagnosis, treatment, referral urgency, or workflow priority."
-  ]
+  "test_accuracy_change_points": 2.500000000000002,
+  "test_reuse_note": "Historical test sets reused once after selections were sealed, not a new external validation. No test predictions were used to select candidates or epochs.",
+  "inference_evaluation": "CPU float32, matching hosted inference",
+  "selection_lock": {
+    "sealed_at_utc": "2026-10-29T19:41:28.383893+00:00",
+    "test_predictions_used_for_selection": false,
+    "files": {
+      "grade": {
+        "path": "grade\\selected_model.pt",
+        "sha256": "76cfd554466e33bc87cf86ce7917576dda2cfe103b0cb3c9d20c22beec8dc1a9"
+      },
+      "fusion": {
+        "path": "fusion\\final_selected_model.pt",
+        "sha256": "f31d551463ebf520d71e7cd4b65182f6a4bba06be9de102e93d1ee2910441f9b"
+      }
+    }
+  },
+  "tuning_summary": "Training/validation-selected model blend. Historical test used once for final non-regression check; no further tuning after test results.",
+  "uncertainty_note": "Small measured improvement; intervals are wide and no statistical superiority or clinical validation is established.",
+  "selected_hyperparameters": {
+    "secondary_weight": 0.25,
+    "secondary_config": {
+      "backbone": "resnet18",
+      "hidden": 64,
+      "dropout": 0.5,
+      "cv_macro_f1": 0.6408900276623876,
+      "cv_accuracy": 0.6503237742830712
+    }
+  }
 }

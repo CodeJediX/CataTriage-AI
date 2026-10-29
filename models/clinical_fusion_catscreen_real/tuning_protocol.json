@@ -1,0 +1,36 @@
+{
+  "grade_configs": 6,
+  "grade_internal_folds": 3,
+  "grade_selection": "Equal-weight internal train-only CV macro-F1 and fixed validation macro-F1",
+  "fusion_backbones": [
+    "mobilenet_v3_small",
+    "efficientnet_b0",
+    "resnet18"
+  ],
+  "fusion_internal_group_folds": 3,
+  "fusion_selection": "Train-only grouped CV selects backbone/head, fixed validation selects stopping point and frozen vs fine-tuned checkpoint",
+  "fine_tune_epochs_max": 24,
+  "test_evaluations": 1,
+  "originals_read_only": true,
+  "no_fabricated_labels": true,
+  "validation_only_extensions": {
+    "grade_blend_tree_weights": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ],
+    "fusion_kernel_candidates": 9,
+    "fusion_kernel_selected": false,
+    "fusion_blend_secondary_weights": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ],
+    "selection_timestamps": "See progress.jsonl and selection_lock.json; all selections precede final test predictions."
+  },
+  "memory_adaptation": "Fine-tuning used last CNN blocks, batch size 4, SGD, fixed BatchNorm statistics, AMP, evaluation batch size 2. Final benchmark inference was CPU float32."
+}

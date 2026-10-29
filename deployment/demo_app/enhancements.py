@@ -4,9 +4,21 @@ import json
 from uuid import uuid4
 from fastapi import APIRouter,File,Form,HTTPException,Request,UploadFile
 from fastapi.responses import JSONResponse,RedirectResponse
-from . import doctor_account,month_planning,surgery_alerts
+from . import doctor_account,month_planning,surgery_alerts,workspace_assistant
 
 router=APIRouter()
+
+
+@router.get('/api/assistant/menu')
+def assistant_menu(request:Request):
+    user=core().require_user(request)
+    return JSONResponse(workspace_assistant.menu(user['r']),headers={'Cache-Control':'no-store'})
+
+
+@router.post('/api/assistant/chat')
+def assistant_chat(request:Request,message:str=Form(...,min_length=1,max_length=600),csrf:str=Form(...)):
+    m=core();user=m.require_user(request);m.verify_csrf(request,csrf)
+    return JSONResponse(workspace_assistant.answer(user['r'],message),headers={'Cache-Control':'no-store'})
 
 
 def core():

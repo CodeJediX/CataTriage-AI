@@ -1,0 +1,150 @@
+{
+  "model_name": "Real multi-data cataract grade model",
+  "status": "research_only_not_clinically_validated",
+  "created_at_utc": "2026-10-26T14:14:58+00:00",
+  "source": {
+    "path": "E:\\Eye Project\\data sets\\Eye_Datasets_Organized\\01_multimodal_collections\\catatriage_ai\\02_Clinical_Tabular\\01_Cataract_Risk_and_Grading\\10.5061_dryad.gt410__new PONE-D-15-08786 original data set.xls",
+    "doi": "10.5061/dryad.gt410",
+    "license": "CC0 1.0",
+    "population": "Taizhou Eye Study phase 1"
+  },
+  "target": "Maximum available grade across bilateral NO, NC, cortical and PSC fields, grouped as 0, 1, 2, or 3+.",
+  "inputs": [
+    "gender",
+    "age",
+    "UCVA Right eye",
+    "BCVA Right",
+    "UCVA Left",
+    "BCVA Left",
+    "R optic disc\uff1aC/D",
+    "R glaucoma(1 No 2 Yes)",
+    "R AMD (1 No 2 Yes)",
+    "R DR (1 No 2 Yes)",
+    "R optic neuritis(1 No 2 Yes)",
+    "R retinal pigment degeneration(1 No 2 Yes)",
+    "R RAO/RVO(1 No 2 Yes)",
+    "R uveitis(1 No 2 Yes)",
+    "high myopia(1 No 2 Yes)",
+    "other fundus diseases(1 No 2 Yes)",
+    "left optic disc\uff1aC/D",
+    "L glaucoma(1 No 2 Yes)",
+    "L AMD (1 No 2 Yes)",
+    "L DR(1 No 2 Yes)",
+    "L optic neuritis(1 No 2 Yes)",
+    "L retinal pigment degeneration(1 No 2 Yes)",
+    "L RAO/RVO(1 No 2 Yes)",
+    "L uveitis(1 No 2 Yes)",
+    "L high myopia(1 No 2 Yes)",
+    "L other fundus diseases(1 No 2 Yes)",
+    "glaucoma history(1 No 2 Yes)",
+    "fundus diseases history(1 No 2 Yes)",
+    "uveitis history(1 No 2 Yes)",
+    "other eye diseases(1 No 2 Yes)",
+    "eye surgery history(1 No 2 Yes)",
+    "Glaucoma surgery history(1 No 2 Yes)",
+    "retinal surgery history(1 No 2 Yes)",
+    "corneal surgery history(1 No 2 Yes)",
+    "Steroid taken history(1 No 2 Yes)",
+    "Glaucoma drug taken history (1 Yes 0 No)",
+    "Use years .1",
+    "outdoor activity hours per day",
+    "sunlight protection or not",
+    "Eye diseases history in family",
+    "Glaucoma",
+    "Retinal diseases",
+    "Myopia",
+    "Other diseases"
+  ],
+  "leakage_controls": "All direct cataract flags, cataract history/surgery, lens status, cataract type and grading fields excluded from inputs. Preprocessing fit on training split only.",
+  "split_strategy": "Single row per participant; stratified 70/15/15 participant-level train/validation/test split with fixed seed. Test set used only after validation-based configuration selection.",
+  "sample_counts": {
+    "train": 1390,
+    "validation": 298,
+    "test": 298
+  },
+  "class_counts": {
+    "train": {
+      "grade 0": 347,
+      "grade 1": 441,
+      "grade 2": 380,
+      "grade 3+": 222
+    },
+    "validation": {
+      "grade 0": 75,
+      "grade 1": 95,
+      "grade 2": 81,
+      "grade 3+": 47
+    },
+    "test": {
+      "grade 0": 75,
+      "grade 1": 94,
+      "grade 2": 81,
+      "grade 3+": 48
+    }
+  },
+  "device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 2050",
+  "seed": 20261026,
+  "selected_hyperparameters": {
+    "hidden": 192,
+    "dropout": 0.3,
+    "lr": 0.0006,
+    "weight_decay": 0.0005
+  },
+  "epochs": 55,
+  "metrics": {
+    "train": {
+      "accuracy": 0.6388489208633094,
+      "balanced_accuracy": 0.6642765584855139,
+      "macro_f1": 0.6477810982119705,
+      "quadratic_weighted_kappa": 0.7792479047372547,
+      "grade_mae": 0.40431654676258993
+    },
+    "validation": {
+      "accuracy": 0.5369127516778524,
+      "balanced_accuracy": 0.5526868787413767,
+      "macro_f1": 0.545939023625242,
+      "quadratic_weighted_kappa": 0.7030292911479583,
+      "grade_mae": 0.5201342281879194
+    },
+    "test": {
+      "accuracy": 0.5369127516778524,
+      "balanced_accuracy": 0.5545307985290255,
+      "macro_f1": 0.5441027138288801,
+      "quadratic_weighted_kappa": 0.6783832721246407,
+      "grade_mae": 0.540268456375839
+    }
+  },
+  "test_confusion_matrix": [
+    [
+      52,
+      16,
+      6,
+      1
+    ],
+    [
+      20,
+      37,
+      29,
+      8
+    ],
+    [
+      5,
+      18,
+      41,
+      17
+    ],
+    [
+      1,
+      0,
+      17,
+      30
+    ]
+  ],
+  "limitations": [
+    "This is a retrospective single-population research benchmark, not a diagnostic device.",
+    "The target is a derived patient-level maximum; it is not an independent adjudicated outcome.",
+    "No external validation, calibration study, subgroup safety study, or prospective clinical evaluation was performed.",
+    "Predictions must never assign treatment or urgency and require clinician review."
+  ]
+}

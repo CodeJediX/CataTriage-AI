@@ -1,0 +1,3 @@
+# Optional local GPU tuning dependencies. Hosted inference does not require CatBoost.
+-r requirements-demo.txt
+catboost==1.2.10

@@ -37,7 +37,7 @@
   },
   {
     "path": "deployment/demo_app/enhancements.py",
-    "sha256": "8c7fe1db7bd0ac3236566d3052347dd3f4bed0a49b0e3fbb91eba8bee266d190"
+    "sha256": "1ad45bec55fa28cbf610e0a5d56fb3c6efdf613cd713282491b2c9777f2f65e5"
   },
   {
     "path": "deployment/demo_app/eye_summary.py",
@@ -65,7 +65,7 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "fb252af473cee24faa8b3c23d0107a6af72b99741f5dcaa87af6119b246e28f9"
+    "sha256": "436d33d4c3c185d9ed796ef2c061bb0dda962cc125db5b2add7fd7f30952a3e8"
   },
   {
     "path": "deployment/demo_app/mobile_api.py",
@@ -85,7 +85,7 @@
   },
   {
     "path": "deployment/demo_app/real_models.py",
-    "sha256": "b8f11340d6118dadde8a81203ae38757ecc3cfb71223bbb3858b2aee86de9756"
+    "sha256": "b1b9b1d872c87dbc02b8829c98d64482863c493b3c2401aa48365453252b5a56"
   },
   {
     "path": "deployment/demo_app/role_databases.py",
@@ -106,6 +106,14 @@
   {
     "path": "deployment/demo_app/synthetic_models.py",
     "sha256": "e854262685c173492cc89209493991a6356fff12b5d6de6c64cbdd0855eb03f2"
+  },
+  {
+    "path": "deployment/demo_app/tuned_architectures.py",
+    "sha256": "f88371f85a77125a45a3190553e8c51424964381736e91d975a32767e47e162e"
+  },
+  {
+    "path": "deployment/demo_app/workspace_assistant.py",
+    "sha256": "c7967e0b6e592c83f59553f8f05eaa79e5490b172dd0853cc8a067c3c0fa5338"
   },
   {
     "path": "deployment/demo_app/__init__.py",
@@ -160,6 +168,14 @@
     "sha256": "cef42d65e2020b83e0ab8ccf904abc7251f3b7a0bf780be7ac7d9d0036a87c7c"
   },
   {
+    "path": "deployment/demo_app/static/workspace-assistant.css",
+    "sha256": "d720b53408557f3a7d7b014c1e4052cb085d43c38e89064dcb29872b0b09fad4"
+  },
+  {
+    "path": "deployment/demo_app/static/workspace-assistant.js",
+    "sha256": "275b610991af17eac9b89e652c4738823782a0fa5f3f9c939702193461abba75"
+  },
+  {
     "path": "deployment/demo_app/templates/about.html",
     "sha256": "7bbcbfa55b46cab3eddce561bfe4dd5a4b41375115b911b704846498fbb641fc"
   },
@@ -185,7 +201,7 @@
   },
   {
     "path": "deployment/demo_app/templates/base.html",
-    "sha256": "ee5994960da1d69402e67b577e684138f9771104e74de65a34cbc804de40e892"
+    "sha256": "cd8824c8b8d911705f314ac15817e535d439f8c80dc9bca994b09f14dd038230"
   },
   {
     "path": "deployment/demo_app/templates/calendar.html",
@@ -245,7 +261,7 @@
   },
   {
     "path": "deployment/demo_app/templates/model.html",
-    "sha256": "c46e2beedc1eed0f1bd3175f849008c2381b60f752f2523696969b87229d0580"
+    "sha256": "d98c03eb3ee4ab45ba2b3ad6798ec8b87d296b15417bda427b61e8c22f28ee8c"
   },
   {
     "path": "deployment/demo_app/templates/month_board.html",
@@ -277,7 +293,7 @@
   },
   {
     "path": "deployment/demo_app/templates/real_lab.html",
-    "sha256": "7b1c23a765e550809dc9590d2abe2599818de98d399eafc9e031f32ca9762fb7"
+    "sha256": "e4aad731d86e3561d3525da7f371de7fc05dd2bec154eafb92654369e3bd90e4"
   },
   {
     "path": "deployment/demo_app/templates/schedule_calendar.html",
@@ -300,36 +316,76 @@
     "sha256": "233714894f4a40f5e5f46f1d346cbe1b7245eddeeba8f7e97f5c33a8189d82d3"
   },
   {
-    "path": "models/cataract_grade_multidata_real/best_model.pt",
+    "path": "models/cataract_grade_multidata_real/baseline_v1.pt",
     "sha256": "639bbe335b0db6e401f17c028a1a5ec35fcfe3f911012571b2c74bd68d83ebd2"
   },
   {
+    "path": "models/cataract_grade_multidata_real/baseline_v1_metrics.json",
+    "sha256": "faec64972155968b93a3eb92b475b53bbad19e403133fd043a4e9fad979e972a"
+  },
+  {
+    "path": "models/cataract_grade_multidata_real/best_model.pt",
+    "sha256": "76cfd554466e33bc87cf86ce7917576dda2cfe103b0cb3c9d20c22beec8dc1a9"
+  },
+  {
     "path": "models/cataract_grade_multidata_real/metrics.json",
-    "sha256": "cf9712ac34f4975e7e5f3c390c1c866640c7cc390a9b7b4204f4a4a1c5371d46"
+    "sha256": "383986cf73052574b7e4a2e8ee11de284baccefed6618beb2600b05a77793d37"
   },
   {
     "path": "models/cataract_grade_multidata_real/test_confusion_matrix.png",
-    "sha256": "45da6d147d3ea4ff1b043659e7f0de0e634c91a44b0a76cf7581f043f3074060"
+    "sha256": "f1a9b5fa10137be2b29b93ac91f829fc9b5cb091575e584a9d64052c881e61e1"
   },
   {
     "path": "models/cataract_grade_multidata_real/training_curves.png",
-    "sha256": "b241607a71485b87ac50af36ccd78109b6f84a7ca5b9754294a05d40a566c33d"
+    "sha256": "4f3eb38cc2843c28029c88793db46aeb9b9c0f2010ec2b9b778bf1559943033d"
   },
   {
-    "path": "models/clinical_fusion_catscreen_real/best_model.pt",
+    "path": "models/cataract_grade_multidata_real/tuning_history.png",
+    "sha256": "192a9313176c1c22aeb8cdff31216bb01fa652b196110baf15dba635dbc5cc15"
+  },
+  {
+    "path": "models/cataract_grade_multidata_real/tuning_protocol.json",
+    "sha256": "bf53ce2bb4beadd0e429bd4085c465aa14089274a112fb114407cc8c8c5ad330"
+  },
+  {
+    "path": "models/cataract_grade_multidata_real/validation_search.json",
+    "sha256": "c55bc7ccdd692a9d579905c6a09e198e749b26a7ffa5b916b633bbe5aeced0d6"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/baseline_v1.pt",
     "sha256": "3a710d285efc5d6a5602311f1cfa5d2c7f6448b89858112a97bc2f86b3f44db7"
   },
   {
-    "path": "models/clinical_fusion_catscreen_real/metrics.json",
+    "path": "models/clinical_fusion_catscreen_real/baseline_v1_metrics.json",
     "sha256": "e1f83af23436a167e7a5c6f0119a379907206fcce3a0c77cca415f9906f83cb4"
   },
   {
+    "path": "models/clinical_fusion_catscreen_real/best_model.pt",
+    "sha256": "f31d551463ebf520d71e7cd4b65182f6a4bba06be9de102e93d1ee2910441f9b"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/metrics.json",
+    "sha256": "97940bab04e46c19ba87bf07b5a38329d0b860ceb7267fb736f6547e4ef48218"
+  },
+  {
     "path": "models/clinical_fusion_catscreen_real/test_confusion_matrix.png",
-    "sha256": "0f9411215fb74d3bd937467347937cf3937893294bfcbac15400d9bbcb9408f1"
+    "sha256": "332c68d16cfda6ac0929fa8a9c644bc5ce6a443d20011d605241444f77efd119"
   },
   {
     "path": "models/clinical_fusion_catscreen_real/training_curves.png",
-    "sha256": "ab19cd6b7b4447c5c2037dc27b011d830d4f4bf8dfa120b4d7dcc7c6e29b88fe"
+    "sha256": "d99be6c6dd1057ab7c16c6f00020ea6bf7571021e46d769f9ec4b6d4df25b2c6"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/tuning_history.png",
+    "sha256": "39a1298a5f29e973210335069446edaf00ce8110f59d3dd25c00b60eaf63f20f"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/tuning_protocol.json",
+    "sha256": "bf53ce2bb4beadd0e429bd4085c465aa14089274a112fb114407cc8c8c5ad330"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/validation_search.json",
+    "sha256": "73bd7caaf95638e63977a96895f85d99697f0017ad6be08a1baffacaad1bd2db"
   },
   {
     "path": "models/cataract_grade_synthetic/best_model.pth",
@@ -361,7 +417,7 @@
   },
   {
     "path": "docs/PROFILE_AND_MONTH_PLANNING.md",
-    "sha256": "2e20f5313285ccd681d147f08124dbf215396ed3da41fcebb5930cdc0f542b16"
+    "sha256": "dbe9a739cb004ccaf856644126f90546e5789e1c20877f95026db349a43ff6eb"
   },
   {
     "path": "tools/build_android.ps1",
@@ -374,6 +430,54 @@
   {
     "path": "tools/serve_android_qa.py",
     "sha256": "226c35358ec201222d09897fa72703ab96ecacf16c29e1a02c47800f4809afc6"
+  },
+  {
+    "path": "tools/train_real_multidata_model.py",
+    "sha256": "a29530cf96e06b2cb64b7b883dffd0a0295a1a027a5fb5292e81b6f424f2f6fd"
+  },
+  {
+    "path": "tools/train_real_catscreen_fusion.py",
+    "sha256": "f5a3fa101f0a54aea773c2308dc056be30dae91a3eaf19fe1b1e4ce94a20f881"
+  },
+  {
+    "path": "tools/tune_real_models_gpu.py",
+    "sha256": "8b64a0a0099fe97b96bc91bffdd1338fddcca87ddf051cd0d8d0d1294b155194"
+  },
+  {
+    "path": "tools/select_grade_blend.py",
+    "sha256": "0f90aeb06b87d718dafa01be5e8837b5e82469a7be3683e381087669e5fe23cf"
+  },
+  {
+    "path": "tools/select_fusion_kernel.py",
+    "sha256": "dcec6b6ef6332aa996c2af243b26952b18d9d232b7187eed2250383b4903eb64"
+  },
+  {
+    "path": "tools/select_fusion_blend.py",
+    "sha256": "a6ad96f21e796483f43af1845d72fe287d1fa43ebf38df47599c56523e2e100a"
+  },
+  {
+    "path": "tools/evaluate_tuned_models.py",
+    "sha256": "24ec9212f8f7b9483b750e18528594d6ba9f148d683ae6e0ea1e99c5a58991dc"
+  },
+  {
+    "path": "tools/promote_tuned_models.py",
+    "sha256": "9d349e4413bc5b26b1a5f19622744d483f01e9d6ab68b95cdf68b669011d0592"
+  },
+  {
+    "path": "tools/generate_real_models_agents_pdf.py",
+    "sha256": "387bca7d7371d74c81004090063a13005833cd59b23f5c85f18dfad95f7f1bbb"
+  },
+  {
+    "path": "tools/generate_tuned_evidence_pdf.py",
+    "sha256": "6606fc3f75d792820b1cba9f8d014968c08e788f169b9989d8a62e375c1c07d3"
+  },
+  {
+    "path": "requirements-training.txt",
+    "sha256": "73667ca009b8bde815f54564abf3573884de1fcceca61e54b6a8766affd827db"
+  },
+  {
+    "path": "requirements-demo.txt",
+    "sha256": "a70fa158e8e9a58cc30be041144bc0765827a5d127a71247fa669a8479eac713"
   },
   {
     "path": "android/.gitignore",
@@ -589,7 +693,7 @@
   },
   {
     "path": "output/pdf/real_models_and_agents_evidence.pdf",
-    "sha256": "d2a6a0ec89edb1a3aede37685de64fad407c3407d2a6d9df075e1bb88f263d51"
+    "sha256": "e84641e89c60e086d373eab2c2afe420c10ceeef14704bb11eb28c05f89b4835"
   },
   {
     "path": "output/pdf/synthetic_cataract_grade_model_evidence.pdf",

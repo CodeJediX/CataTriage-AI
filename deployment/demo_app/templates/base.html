@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/static/identity.css?v=20261027">
   <script src="/static/cloud-uploads.js" defer></script>
   <script src="/static/app.js" defer></script>
-  {% if user and not auth_page %}<script src="/static/surgery-alerts.js?v=20261029" defer></script>{% endif %}
+  {% if user and not auth_page %}<script src="/static/surgery-alerts.js?v=20261029" defer></script><script src="/static/workspace-assistant.js?v=20261030" defer></script><link rel="stylesheet" href="/static/workspace-assistant.css?v=20261030">{% endif %}
 </head>
 <body class="{% if not user or auth_page %}auth-body{% endif %} {% if auth_page %}identity-page{% endif %} {{ 'has-pending-surgery' if pending_surgery_count else '' }}" data-cloud-uploads="{{ 'true' if cloud_database else 'false' }}">
 {% if auth_page %}<div class="optical-background" aria-hidden="true"><div class="optical-grid"></div><div class="optical-orbit"><i></i><i></i><i></i><b></b></div><div class="optical-light"></div></div>{% endif %}
@@ -58,6 +58,8 @@
   <span class="surgery-bell-label">Awaiting surgery date<small>Month approved · date pending</small></span>
 </a>
 <span id="pending-surgery-announcement" class="surgery-alert-sr" role="status" aria-live="polite" aria-atomic="true"></span>
+<button id="workspace-guide-launcher" class="guide-launcher" aria-label="Open workspace guide" aria-expanded="false" aria-controls="workspace-guide"><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-2 2V11.5A8.5 8.5 0 0 1 10.5 3h2a8.5 8.5 0 0 1 8.5 8.5Z"/><path d="M7 10h10M7 14h6"/></svg><span>Workspace guide</span></button>
+<section id="workspace-guide" class="workspace-guide" role="dialog" aria-modal="false" aria-labelledby="workspace-guide-title" hidden data-csrf="{{ csrf }}"><header class="guide-header"><div><span class="guide-kicker">A little help, right here</span><h2 id="workspace-guide-title">Your workspace guide</h2><p>Navigation, shortcuts &amp; clear explanations</p></div><button id="workspace-guide-close" aria-label="Close workspace guide">×</button></header><div id="workspace-guide-log" class="guide-log" role="log" aria-live="polite" aria-relevant="additions"><div class="guide-message guide-reply">Hello. Where would you like to go?<small>Built-in guide · no external AI requests</small></div></div><div id="workspace-guide-prompts" class="guide-prompts" aria-label="Suggested questions"></div><form id="workspace-guide-form" class="guide-form"><label class="surgery-alert-sr" for="workspace-guide-input">Ask for navigation or workspace help</label><input id="workspace-guide-input" name="message" maxlength="600" placeholder="Try “open calendar”…" autocomplete="off" required><button aria-label="Send guide question" type="submit">↑</button></form><footer class="guide-footer">For navigation and system help. Your doctor decides care.</footer></section>
 {% endif %}
 </body>
 </html>

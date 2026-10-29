@@ -1,0 +1,110 @@
+{
+  "model_name": "Real CatScreen image-context fusion CNN",
+  "status": "research_only_not_clinically_validated",
+  "created_at_utc": "2026-10-26T14:31:15+00:00",
+  "source": {
+    "name": "CatScreen official public sample snapshot",
+    "official_page": "https://www.iab-rubric.org/resources/healthcare-datasets/catscreen",
+    "paper": "https://openreview.net/pdf?id=cF7tSNAVQ6",
+    "release_root": "E:\\Eye Project\\data sets\\CatScreen_Public_Sample\\extracted\\Data2025-main\\Clean",
+    "training_cache": "E:\\Eye Project\\data sets\\CatScreen_Public_Sample\\training_cache_512",
+    "license_note": "Public sample obtained from the official dataset page; full release is governed by the CatScreen institutional research license."
+  },
+  "target": "Three CatScreen diagnostic screening labels: normal, cataract, or other ocular condition.",
+  "architecture": "ImageNet-pretrained MobileNetV3-Small image encoder fused with a 9-value context branch.",
+  "context": "Laterality plus acquisition/quality context (reflection, image quality, illumination type). The public snapshot does not include the full patient clinical metadata, so this is not a complete clinical-fusion validation.",
+  "split_strategy": "Official train/validation/test files; verified zero participant-ID overlap.",
+  "participant_overlap": {
+    "train_val": [],
+    "train_test": [],
+    "val_test": []
+  },
+  "sample_counts": {
+    "train": 140,
+    "validation": 20,
+    "test": 40
+  },
+  "participant_counts": {
+    "train": 129,
+    "validation": 19,
+    "test": 37
+  },
+  "class_counts": {
+    "train": {
+      "cataract": 65,
+      "normal": 45,
+      "other": 30
+    },
+    "val": {
+      "cataract": 10,
+      "normal": 5,
+      "other": 5
+    },
+    "test": {
+      "cataract": 27,
+      "normal": 8,
+      "other": 5
+    }
+  },
+  "device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 2050",
+  "seed": 20261026,
+  "best_epoch": 10,
+  "epochs_run": 24,
+  "metrics": {
+    "train": {
+      "accuracy": 0.7571428571428571,
+      "balanced_accuracy": 0.7498575498575498,
+      "macro_f1": 0.7262577486604896,
+      "per_class_recall": {
+        "normal": 0.37777777777777777,
+        "cataract": 0.9384615384615385,
+        "other": 0.9333333333333333
+      }
+    },
+    "validation": {
+      "accuracy": 0.65,
+      "balanced_accuracy": 0.7000000000000001,
+      "macro_f1": 0.6464285714285715,
+      "per_class_recall": {
+        "normal": 0.6,
+        "cataract": 0.5,
+        "other": 1.0
+      }
+    },
+    "test": {
+      "accuracy": 0.525,
+      "balanced_accuracy": 0.5601851851851852,
+      "macro_f1": 0.4244620114185331,
+      "per_class_recall": {
+        "normal": 0.125,
+        "cataract": 0.5555555555555556,
+        "other": 1.0
+      }
+    }
+  },
+  "test_confusion_matrix": [
+    [
+      1,
+      4,
+      3
+    ],
+    [
+      3,
+      15,
+      9
+    ],
+    [
+      0,
+      0,
+      5
+    ]
+  ],
+  "limitations": [
+    "The held-out test contains only 40 images from 37 participants; uncertainty is large.",
+    "The public snapshot does not include the full patient metadata described for the licensed release, so the structured branch uses laterality and acquisition context only.",
+    "Image quality and acquisition settings may encode site/device shortcuts and require external validation.",
+    "No calibration, subgroup safety study, prospective evaluation, or clinical validation was performed.",
+    "Predictions must not assign diagnosis, treatment, referral urgency, or workflow priority."
+  ]
+}

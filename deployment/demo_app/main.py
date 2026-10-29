@@ -1263,7 +1263,7 @@ async def real_lab_fusion(
 @app.get("/real-reports/{model}/{filename}")
 def real_report_asset(request: Request, model: str, filename: str):
     require_user(request)
-    if model not in {"cataract_grade_multidata_real", "clinical_fusion_catscreen_real"} or filename not in {"training_curves.png", "test_confusion_matrix.png", "metrics.json", "predictions_and_splits.csv"}:
+    if model not in {"cataract_grade_multidata_real", "clinical_fusion_catscreen_real"} or filename not in {"training_curves.png", "tuning_history.png", "test_confusion_matrix.png", "metrics.json", "predictions_and_splits.csv"}:
         raise HTTPException(404, "Real model report not found")
     root = (ROOT / "models" / model).resolve(); target = (root / filename).resolve()
     if not target.is_relative_to(root) or not target.exists():
