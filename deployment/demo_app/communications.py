@@ -26,7 +26,7 @@ def temporary_password():
 def generated_username(con,name):
     slug=re.sub(r"[^a-z0-9]+",".",re.sub(r"^dr\.?\s*","",name.lower())).strip(".")[:35] or "doctor"
     username="dr."+slug
-    while con.execute("SELECT 1 FROM users WHERE username=?",(username,)).fetchone():
+    while con.execute("SELECT 1 FROM users WHERE username=?",(username,)).fetchone() or con.execute('SELECT 1 FROM account_login_names WHERE login_name=?',(username,)).fetchone():
         username="dr."+slug+"."+secrets.token_hex(3)
     return username
 

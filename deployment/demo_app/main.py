@@ -36,6 +36,9 @@ from . import cloud_database, file_store
 from . import account_security, communications, account_management, firebase_mail
 from .cloud_uploads import router as upload_router, restore as restore_uploads
 from .mobile_api import router as mobile_router
+from .enhancements import router as enhancements_router
+from . import doctor_account, month_planning
+from .clinical_planning import clinical_review, clinical_context
 
 APP_DIR = Path(__file__).resolve().parent
 ROOT = APP_DIR.parents[1]
@@ -66,6 +69,7 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.include_router(google_router)
 app.include_router(upload_router)
 app.include_router(mobile_router)
+app.include_router(enhancements_router)
 templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 
@@ -120,6 +124,7 @@ def read_session(request: Request) -> dict | None:
         if not user or user[0]!=data["r"] or data.get("v",0)!=security["password_epoch"] or (profile and not profile[0]): return None
         if security["must_change"] and security["temporary_expires"]<time.time(): return None
         data["must_change"]=bool(security["must_change"])
+        with connection() as con: data["login_name"]=doctor_account.login_name(con,data["u"])
         request.state.verified_session=data
         return data
     except Exception:
@@ -217,10 +222,11 @@ def android_download_page(request:Request):
     return render(request,'android.html',release=release)
 
 
-@app.get('/downloads/CataTriage-Doctor-1.0.0.apk')
-def android_apk():
+@app.get('/downloads/{filename}')
+def android_apk(filename:str):
+    if filename not in {'CataTriage-Doctor-1.0.0.apk','CataTriage-Doctor-1.1.0.apk'}: raise HTTPException(404,'Android release not found.')
     from fastapi.responses import FileResponse
-    artifact=ROOT/'output/android/CataTriage-Doctor-1.0.0.apk'
+    artifact=ROOT/'output/android'/filename
     if not artifact.exists(): raise HTTPException(404,'Android APK is being prepared.')
     return FileResponse(artifact,media_type='application/vnd.android.package-archive',filename=artifact.name,headers={'Cache-Control':'public,max-age=3600','X-Content-Type-Options':'nosniff'})
 
@@ -235,7 +241,7 @@ def role_login_page(request: Request, portal: str, next: str = ""):
     if portal not in {"doctor", "admin", "technician"}:
         raise HTTPException(404, "Unknown portal")
     default_next = {"doctor":"/doctor", "admin":"/admin", "technician":"/support"}[portal]
-    return render(request, "login.html", next_path=next or default_next, error=None, portal=portal)
+    return render(request, "login.html", next_path=next or default_next, error=None, portal=portal, login_username=request.query_params.get("username",""))
 
 
 @app.post("/login")
@@ -245,7 +251,9 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         username=username.strip().lower()
         key=account_security.attempt_key(request,username)
         if account_security.blocked(con,key): return render(request,"login.html",next_path=next_path,error="Too many attempts. Try again in 15 minutes.",portal=portal or None,response_status=429)
-        row = con.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+        canonical=doctor_account.resolve_login(con,username)
+        row = con.execute("SELECT * FROM users WHERE username=?", (canonical,)).fetchone()
+        username=canonical or username
         security=account_security.state(con,username)
         profile=con.execute("SELECT is_active,email FROM doctor_profiles WHERE username=?",(username,)).fetchone() if row and row["role"]=="doctor" else None
         password_ok=bool(row and verify_password(password,row['password_hash']))
@@ -289,6 +297,7 @@ def change_doctor_password(request: Request,username:str=Form(...,max_length=80)
         con.execute("BEGIN IMMEDIATE")
         key=account_security.attempt_key(request,username)
         if account_security.blocked(con,key): return render(request,"password_change.html",error="Too many attempts. Try again in 15 minutes.",success=False,response_status=429)
+        username=doctor_account.resolve_login(con,username) or username
         row=con.execute("SELECT u.*,d.email FROM users u JOIN doctor_profiles d USING(username) WHERE u.username=? AND u.role='doctor' AND d.is_active=1",(username,)).fetchone()
         security=account_security.state(con,username)
         if not row or not verify_password(current_password,row["password_hash"]) or (security["must_change"] and security["temporary_expires"]<time.time()):
@@ -458,6 +467,7 @@ async def analyze_case(request: Request, case_id: str, modality: str = Form(...)
     file_store.write(target,payload)
     digest = hashlib.sha256(payload).hexdigest()
     with connection() as con:
+        con.execute('BEGIN IMMEDIATE')
         previous = con.execute("SELECT image_path FROM cases WHERE case_id=?", (case_id,)).fetchone()[0]
         con.execute("UPDATE cases SET image_path=?,image_sha256=?,analysis_status=?,analysis_json=? WHERE case_id=?",
                     (str(target.relative_to(APP_DIR)).replace("\\", "/"), digest, result["status"], json.dumps(result), case_id))
@@ -482,7 +492,8 @@ def review_page(request: Request, case_id: str):
         surgery = con.execute("SELECT * FROM surgeries WHERE case_id=?", (case_id,)).fetchone()
         capacity = con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone()
     analysis = json.loads(row["analysis_json"]) if row["analysis_json"] else None
-    return render(request, "clinical_review.html", page="review", case=row, analysis=analysis, reviewer=user, surgery=surgery, capacity=capacity, suggestion=None, booking_error=None)
+    from .enhancements import month_context
+    return render(request, "clinical_review.html", page="review", case=row, analysis=analysis, reviewer=user, surgery=surgery, capacity=capacity, suggestion=None, booking_error=None, **month_context(__import__(__name__,fromlist=["app"]),user,dict(row)))
 
 
 @app.get("/doctor", response_class=HTMLResponse)
@@ -656,6 +667,7 @@ def review_case(request: Request, case_id: str, decision: str = Form(...), tier:
     approved_tier = tier if decision != "reject" else None
     status = "approved" if approved_tier else "review_rejected"
     with connection() as con:
+        con.execute('BEGIN IMMEDIATE')
         row = _case(con, case_id)
         old_tier = row["approved_tier"]
         con.execute("UPDATE cases SET approved_tier=?,approved_by=?,approval_reason=?,review_state=?,status=? WHERE case_id=?",
@@ -702,53 +714,47 @@ def submit_leave(request: Request, leave_date: str = Form(...), leave_type: str 
 
 
 @app.post("/doctor/review/{case_id}/suggestion", response_class=HTMLResponse)
-def surgery_suggestion(request: Request, case_id: str, csrf: str = Form(...),
-    clinical_context_submitted: str = Form(""), symptoms: str = Form("",max_length=20000), notes: str = Form("",max_length=20000)):
-    user = require_user(request, "doctor"); verify_csrf(request, csrf); require_assignment(user, case_id)
+def surgery_suggestion(request:Request,case_id:str,csrf:str=Form(...),clinical_context_submitted:str=Form(""),symptoms:str=Form("",max_length=20000),notes:str=Form("",max_length=20000),functional_impact:str=Form("unknown"),progression:str=Form("unknown"),planning_preference:str=Form("balanced")):
+    from .enhancements import month_suggestion,month_context
+    user=require_user(request,"doctor")
+    result=month_suggestion(request,case_id,csrf,symptoms,notes,functional_impact,progression,planning_preference)
     with connection() as con:
-        row = _case(con, case_id)
-        if clinical_context_submitted=="1":
-            con.execute("UPDATE cases SET symptoms=?,notes=? WHERE case_id=?",(symptoms.strip(),notes.strip(),case_id))
-            audit(con,user["u"],user["r"],"clinical_context_updated",case_id,"Doctor updated reported symptoms and clinical notes for advisory planning; image uploads unchanged.")
-            row=_case(con,case_id)
-        analysis = json.loads(row["analysis_json"]) if row["analysis_json"] else None
-        images=[dict(item) for item in con.execute("SELECT id,eye_side,analysis_json FROM case_images WHERE case_id=?",(case_id,))]
-        summary=summarize_eyes(images,analysis)
-        analysis={**(analysis or {}),"eye_findings":[{key:item[key] for key in ("side","status","cataract_signal")} for item in summary["entries"]]}
-        suggestion = suggest_surgery_date(row, analysis, con, user["u"])
-        capacity = con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone()
-        surgery = con.execute("SELECT * FROM surgeries WHERE case_id=?", (case_id,)).fetchone()
-        audit(con,user["u"],user["r"],"surgery_date_suggested",case_id,f"provider={suggestion['provider']}; advisory_date={suggestion['suggested_date']}; clinical_hold={suggestion.get('clinical_hold',False)}; inputs=reported_symptoms,clinical_notes; raw_notes_sent=false")
-    return render(request,"clinical_review.html",page="review",case=row,analysis=analysis,reviewer=user,surgery=surgery,capacity=capacity,suggestion=suggestion,booking_error=None)
+        row=_case(con,case_id)
+        surgery=con.execute("SELECT * FROM surgeries WHERE case_id=?",(case_id,)).fetchone()
+        capacity=con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone()
+    return render(request,"clinical_review.html",page="review",case=row,analysis=json.loads(row['analysis_json'] or '{}'),reviewer=user,surgery=surgery,capacity=capacity,suggestion=result,booking_error=None,**month_context(__import__(__name__,fromlist=["app"]),user,dict(row)))
 
 
 @app.post("/doctor/review/{case_id}/surgery", response_class=HTMLResponse)
+@app.post("/admin/surgery/{case_id}/confirm")
 def confirm_surgery(request: Request, case_id: str, surgery_date: str = Form(...), slot: str = Form(...), rationale: str = Form(...), csrf: str = Form(...)):
-    user = require_user(request,"doctor"); verify_csrf(request,csrf); patient=require_assignment(user,case_id)
+    user = require_user(request,"admin"); verify_csrf(request,csrf); patient=require_assignment(user,case_id)
+    assigned_doctor=patient["doctor_username"]
     if len(rationale.strip()) < 8: raise HTTPException(400,"Record your clinical scheduling rationale.")
     with connection() as con:
         con.execute("BEGIN IMMEDIATE")
         try:
             before=con.execute("SELECT * FROM surgeries WHERE case_id=?",(case_id,)).fetchone()
-            reserve_surgery(con,case_id,surgery_date,slot,user["u"],rationale.strip())
-        except HTTPException as exc:
-            row=_case(con,case_id)
-            analysis=json.loads(row["analysis_json"]) if row["analysis_json"] else None
-            return render(request,"clinical_review.html",response_status=exc.status_code,page="review",case=row,analysis=analysis,reviewer=user,
-                surgery=con.execute("SELECT * FROM surgeries WHERE case_id=?",(case_id,)).fetchone(),
-                capacity=con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone(),suggestion=None,booking_error=exc.detail)
-        audit(con,user["u"],user["r"],"surgery_confirmed",case_id,f"doctor-selected date={surgery_date}; slot={slot}; rationale={rationale.strip()}")
-        same=before and before["status"]=="confirmed" and before["surgery_date"]==surgery_date and before["slot"]==slot and before["confirmed_by"]==user["u"]
-        existing=con.execute("SELECT * FROM outbound_notifications WHERE case_id=? AND doctor_username=? AND surgery_date=? AND slot=? ORDER BY id DESC LIMIT 1",(case_id,user["u"],surgery_date,slot)).fetchone() if same else None
+            month_planning.require_approved(con,dict(_case(con,case_id)),assigned_doctor,surgery_date)
+            available=month_planning.free_slots(con,assigned_doctor,surgery_date[:7],case_id)
+            if not any(x["date"]==surgery_date and x["slot"]==slot for x in available): raise HTTPException(409,"This slot is no longer free. Refresh the approved-month calendar.")
+            earliest=clinical_context(_case(con,case_id))["doctor_earliest_date"]
+            if earliest and surgery_date<earliest: raise HTTPException(409,"Choose a date on or after the doctor-recorded earliest date.")
+            reserve_surgery(con,case_id,surgery_date,slot,assigned_doctor,rationale.strip())
+        except HTTPException:
+            raise
+        audit(con,user["u"],user["r"],"surgery_confirmed",case_id,f"admin-selected date within doctor-approved month={surgery_date}; slot={slot}; rationale={rationale.strip()}")
+        same=before and before["status"]=="confirmed" and before["surgery_date"]==surgery_date and before["slot"]==slot and before["confirmed_by"]==assigned_doctor
+        existing=con.execute("SELECT * FROM outbound_notifications WHERE case_id=? AND doctor_username=? AND surgery_date=? AND slot=? ORDER BY id DESC LIMIT 1",(case_id,assigned_doctor,surgery_date,slot)).fetchone() if same else None
         new_notice=not existing
         if existing: token=existing["confirmation_token"]
         else:
             token=uuid4().hex
-            profile=con.execute("SELECT whatsapp_phone FROM doctor_profiles WHERE username=?",(user["u"],)).fetchone()
+            profile=con.execute("SELECT whatsapp_phone FROM doctor_profiles WHERE username=?",(assigned_doctor,)).fetchone()
             sender=profile[0] if profile else ""
             body=communications.surgery_message(patient["full_name"],surgery_date,slot)
             con.execute("""INSERT INTO outbound_notifications(confirmation_token,case_id,doctor_username,patient_name,recipient_phone,sender_phone,surgery_date,slot,body,delivery_status,created_at)
-                VALUES(?,?,?,?,?,?,?,?,?,'sending',?)""",(token,case_id,user["u"],patient["full_name"],patient["phone"],sender,surgery_date,slot,body,now_iso()))
+                VALUES(?,?,?,?,?,?,?,?,?,'sending',?)""",(token,case_id,assigned_doctor,patient["full_name"],patient["phone"],sender,surgery_date,slot,body,now_iso()))
     if new_notice:
         delivery=communications.send_surgery_whatsapp(sender,patient["phone"],patient["full_name"],surgery_date,slot)
         with connection() as con:
@@ -785,6 +791,7 @@ async def registered_intake(request: Request, case_id: str = Form(...), modality
         ext={"JPEG":"jpg","PNG":"png","WEBP":"webp"}[meta["format"]]
         prepared.append((eye,payload,ext,result))
     with connection() as con:
+        con.execute('BEGIN IMMEDIATE')
         _case(con,case_id)
         con.execute("UPDATE cases SET modality=?,symptoms=?,notes=?,status='awaiting_review' WHERE case_id=?",(modality,symptoms.strip(),notes.strip(),case_id))
         if not prepared:
@@ -887,6 +894,7 @@ async def admin_save_doctor(
     with connection() as con:
         con.execute("BEGIN IMMEDIATE")
         if not username: username=communications.generated_username(con,display_name)
+        if con.execute("SELECT 1 FROM account_login_names WHERE login_name=? AND username<>?",(username,username)).fetchone(): raise HTTPException(409,"This sign-in username is already in use.")
         existing = con.execute("SELECT username FROM users WHERE username=?", (username,)).fetchone()
         if not existing and not email: raise HTTPException(400,"The doctor's email address is required for new account registration.")
         if email and con.execute("SELECT 1 FROM doctor_profiles WHERE lower(email)=? AND username<>?",(email,username)).fetchone(): raise HTTPException(409,"This email is already registered to another doctor.")
@@ -919,7 +927,8 @@ async def admin_save_doctor(
             (username, display_name.strip(), "Ophthalmology", "CataTriage Demonstration Hospital", mobile.strip(), email, f"{work_start}-{work_end}", days, image_name, whatsapp_phone.strip()))
     status="Doctor profile updated."
     if new_password:
-        delivery=communications.send_credentials(email,username,new_password)
+        with connection() as con: current_login=doctor_account.login_name(con,username)
+        delivery=communications.send_credentials(email,current_login,new_password)
         _record_login_email(username,delivery,user)
         status=f"Registered {username}. "+delivery["detail"]
     return RedirectResponse("/admin?account_status="+quote(status), status_code=303)
@@ -1000,7 +1009,8 @@ def resend_doctor_login(request:Request,username:str,csrf:str=Form(...)):
         profile=con.execute("SELECT * FROM doctor_profiles WHERE username=? AND is_active=1",(username,)).fetchone()
         if not profile or not communications.valid_email(profile["email"]): raise HTTPException(400,"Save a valid registered doctor email before sending new login credentials.")
         previous=con.execute("SELECT password_hash FROM users WHERE username=?",(username,)).fetchone()[0]
-    delivery=communications.send_credentials(profile["email"],username,password)
+    with connection() as con: current_login=doctor_account.login_name(con,username)
+    delivery=communications.send_credentials(profile["email"],current_login,password)
     if delivery["status"]=="accepted" and not delivery.get('password_setup'):
         with connection() as con:
             con.execute("BEGIN IMMEDIATE")
@@ -1093,6 +1103,8 @@ def admin_leave_patient_action(
         if action == "reschedule":
             validated_date(new_date)
             if event_type=="surgery":
+                month_planning.require_approved(con,dict(_case(con,case_id)),leave['doctor_username'],new_date)
+                if not any(x['date']==new_date and x['slot']==event['slot'] for x in month_planning.free_slots(con,leave['doctor_username'],new_date[:7],case_id)): raise HTTPException(409,'Select a free slot within the approved surgery month.')
                 reserve_surgery(con,case_id,new_date,event["slot"],leave["doctor_username"],"Rescheduled by admin due to doctor leave; original clinical decision retained.")
             else:
                 if not doctor_available(con,leave["doctor_username"],new_date,event["slot"]): raise HTTPException(409,"Doctor unavailable at the new appointment time.")
@@ -1171,7 +1183,7 @@ def calendar_page(request: Request, kind: str = "meeting", month: str = ""):
         surgeries=[dict(r) for r in con.execute("SELECT s.*,s.surgery_date scheduled_date,c.patient_alias,c.approved_tier FROM surgeries s JOIN cases c USING(case_id) WHERE s.status='confirmed' AND c.is_archived=0 ORDER BY surgery_date,slot")]
         capacity=con.execute("SELECT * FROM surgery_capacity WHERE id=1").fetchone()
         token=request.query_params.get("confirmation","")
-        notice=con.execute("SELECT * FROM outbound_notifications WHERE confirmation_token=? AND doctor_username=?",(token,user["u"])).fetchone() if token else None
+        notice=con.execute("SELECT * FROM outbound_notifications WHERE confirmation_token=?"+("" if user["r"]=="admin" else " AND doctor_username=?"),(token,) if user["r"]=="admin" else (token,user["u"])).fetchone() if token else None
         surgery_confirmation=dict(notice) if notice else None
         if surgery_confirmation: surgery_confirmation["manual_link"]=communications.whatsapp_link(notice["recipient_phone"],notice["body"])
     with role_connection(DOCTOR_DB_PATH) as con:

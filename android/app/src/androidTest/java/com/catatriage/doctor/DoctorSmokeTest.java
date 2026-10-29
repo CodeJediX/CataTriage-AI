@@ -126,6 +126,13 @@ public class DoctorSmokeTest extends InstrumentationTestCase {
     click("Review");
     waitFor("Your clinical decision");
     screenshot("review");
+    assertNotNull(named("Suggest a surgery month"));
+    assertNull(named("Confirm selected surgery"));
+    click("Your profile and settings");
+    waitFor("Sign-in username");
+    assertNotNull(named("Change profile photograph"));
+    assertNotNull(named("Change password securely"));
+    screenshot("profile-editor");
     click("Calendar");
     waitFor("A considered schedule");
     screenshot("calendar");

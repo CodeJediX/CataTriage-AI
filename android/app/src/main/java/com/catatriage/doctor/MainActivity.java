@@ -431,7 +431,7 @@ public class MainActivity extends Activity {
                     error(
                         e instanceof java.net.UnknownHostException
                             ? "No internet connection. Reconnect and try again. Your unsaved form"
-                                  + " is still here."
+                                + " is still here."
                             : e.getMessage() == null
                                 ? "Connection failed. Please try again."
                                 : e.getMessage());
@@ -847,15 +847,16 @@ public class MainActivity extends Activity {
   }
 
   private void review() {
-    JSONObject c = o(patientData, "case");
+    JSONObject c = o(patientData, "case"),
+        assess = o(patientData, "month_assessment"),
+        plan = o(patientData, "month_plan");
     heading("Your clinical decision");
     info(
         "Priority tiers",
         "Tier 1 · Higher priority: review and plan first.\n"
-            + "Tier 2 · Intermediate: plan after higher-priority cases.\n"
-            + "Tier 3 · Routine: plan within routine availability.\n\n"
-            + "These local workflow labels do not define a cataract grade or a safe waiting"
-            + " period.");
+            + "Tier 2 · Intermediate priority.\n"
+            + "Tier 3 · Routine priority.\n"
+            + "These labels do not define a cataract grade or a safe waiting period.");
     Spinner decision =
         select(
             content,
@@ -880,10 +881,10 @@ public class MainActivity extends Activity {
         "Record independent review",
         () -> {
           String[] decisions = {"approve", "modify", "escalate", "reject"};
-          String selected =
+          String selectedTier =
               tiers.getSelectedItemPosition() == 0 ? "" : tiers.getSelectedItem().toString();
           run(
-              "Saving clinical decision…",
+              "Saving review…",
               () ->
                   api.post(
                       "/api/mobile/patients/" + currentCase + "/review",
@@ -891,82 +892,178 @@ public class MainActivity extends Activity {
                           "decision",
                           decisions[decision.getSelectedItemPosition()],
                           "tier",
-                          selected,
+                          selectedTier,
                           "reason",
                           text(reason))),
-              r -> {
-                success("Review saved");
-                loadCase(currentCase, "Review");
-              });
+              r -> loadCase(currentCase, "Review"));
         },
         true);
-    section("Planning & clinical advice");
+    if (!s(plan, "approved_month").isEmpty())
+      info(
+          plan.optBoolean("is_current")
+              ? "Doctor-approved surgery month"
+              : "Month approval needs fresh review",
+          s(plan, "approved_month") + "\n" + s(plan, "approval_reason"));
+    section("AI month planning");
+    para(
+        "The doctor approves a month. The hospital admin selects the exact free date and time."
+            + " Model confidence is not used to justify delaying care.");
     EditText symptoms = input(content, "Reported symptoms", s(c, "symptoms"), true),
         notes = input(content, "Clinical notes", s(c, "notes"), true);
+    String[] impactCodes = {"unknown", "mild", "moderate", "severe"},
+        progressCodes = {"unknown", "stable", "progressive"},
+        preferenceCodes = {"soon", "balanced", "later"};
+    Spinner impact =
+        select(
+            content,
+            "Doctor-assessed functional impact",
+            new String[] {"Not assessed", "Mild", "Moderate", "Severe"},
+            Math.max(0, Arrays.asList(impactCodes).indexOf(s(assess, "functional_impact"))));
+    Spinner progression =
+        select(
+            content,
+            "Doctor-assessed progression",
+            new String[] {"Not assessed", "Stable", "Progressive"},
+            Math.max(0, Arrays.asList(progressCodes).indexOf(s(assess, "progression"))));
+    Spinner preference =
+        select(
+            content,
+            "Planning preference after clinical discussion",
+            new String[] {
+              "Earlier consideration",
+              "Balanced elective planning",
+              "Later if clinically appropriate"
+            },
+            Math.max(0, Arrays.asList(preferenceCodes).indexOf(s(assess, "planning_preference"))));
     para(
-        "The suggestion saves these fields and uses recognised clinical features with doctor,"
-            + " theatre and bed availability. Raw notes and patient identifiers are excluded from"
-            + " the AI provider request.");
+        "Mild, stable routine cases can be considered for later planning when the doctor records"
+            + " that preference. A proposed month is not a medically validated safe waiting time.");
     button(
         content,
-        "Suggest a surgery date",
-        () ->
-            run(
-                "Reviewing clinical context and available dates…",
-                () ->
-                    api.post(
-                        "/api/mobile/patients/" + currentCase + "/suggestion",
-                        Api.form("symptoms", text(symptoms), "notes", text(notes))),
-                r -> suggestion(o(r, "suggestion"))),
+        "Suggest a surgery month",
+        () -> {
+          Map<String, String> values =
+              Api.form(
+                  "symptoms",
+                  text(symptoms),
+                  "notes",
+                  text(notes),
+                  "functional_impact",
+                  impactCodes[impact.getSelectedItemPosition()],
+                  "progression",
+                  progressCodes[progression.getSelectedItemPosition()],
+                  "planning_preference",
+                  preferenceCodes[preference.getSelectedItemPosition()]);
+          run(
+              "Reviewing clinical context and month availability…",
+              () -> api.post("/api/mobile/patients/" + currentCase + "/suggestion", values),
+              r -> suggestion(o(r, "suggestion")));
+        },
         true);
-    JSONObject booking = o(patientData, "surgery");
-    if (!s(booking, "surgery_date").isEmpty())
-      info(
-          "Recorded surgery",
-          s(booking, "surgery_date") + " at " + s(booking, "slot") + " · " + s(booking, "status"));
-    button(content, "Choose & confirm surgery date", () -> booking("", "09:00"), false);
+    button(
+        content,
+        "Choose a month for admin scheduling",
+        () -> approveMonth(new JSONObject()),
+        false);
   }
 
-  private void bullets(LinearLayout parent, JSONArray lines) {
-    for (int i = 0; i < lines.length(); i++) {
-      add(parent, label("•  " + lines.optString(i), 14, INK, false));
-      gap(parent, 9);
+  private void bullets(LinearLayout parent,JSONArray lines) {
+    for(int index=0;index<lines.length();index++) {
+      add(parent,label("•  "+lines.optString(index),14,INK,false));
+      gap(parent,9);
     }
   }
 
   private void suggestion(JSONObject result) {
-    frame(currentCase, "Planning advice", true, true);
-    heading(
-        s(result, "suggested_date").isEmpty() ? "Assessment first" : s(result, "suggested_date"));
+    frame(currentCase, "Surgery month proposal", true, true);
+    heading(s(result, "suggested_month_label"));
     para(s(result, "provider_label"));
-    info("Provisional suggestion", s(result, "reason"));
     LinearLayout reasons = card(content);
-    add(reasons, label("Why this date is worth considering", 17, INK, true));
-    gap(reasons, 10);
+    add(reasons, label("Why this month was considered", 18, TEAL, true));
+    gap(reasons, 12);
     bullets(reasons, a(result, "reason_points"));
     para(s(result, "integration_status"));
     JSONObject clinical = o(result, "clinical_review");
-    section("Clinical considerations");
-    info(s(clinical, "status"), s(clinical, "provider_label"));
+    info("Clinical review", s(clinical, "status"));
     LinearLayout advice = card(content);
-    add(advice, label("For doctor review", 17, TEAL, true));
-    gap(advice, 12);
     bullets(advice, a(clinical, "advice"));
+    section("Information to confirm");
     LinearLayout missing = card(content);
-    add(missing, label("Information to confirm", 17, INK, true));
-    gap(missing, 12);
     bullets(missing, a(clinical, "missing_information"));
     para(s(clinical, "limitations"));
-    if (!s(result, "suggested_date").isEmpty())
-      button(
-          content,
-          "Review suggested slot",
-          () ->
-              booking(
-                  s(result, "suggested_date"),
-                  s(result, "suggested_time").isEmpty() ? "09:00" : s(result, "suggested_time")),
-          true);
+    if (!s(result, "suggested_month").isEmpty())
+      button(content, "Review & approve a month", () -> approveMonth(result), true);
     button(content, "Return to clinical review", () -> loadCase(currentCase, "Review"), false);
+  }
+
+  private void approveMonth(JSONObject result) {
+    frame(currentCase, "Approve surgery month", true, true);
+    heading("Your month decision");
+    para(
+        "Confirm an elective planning month after clinical assessment. The hospital admin will"
+            + " select a free date inside it. Changed symptoms or evidence require fresh review.");
+    Calendar cursor = Calendar.getInstance();
+    List<String> codes = new ArrayList<>(), labels = new ArrayList<>();
+    String preferred = s(result, "suggested_month");
+    if (preferred.isEmpty()) preferred = s(o(patientData, "month_plan"), "approved_month");
+    for (int i = 0; i < 13; i++) {
+      codes.add(new SimpleDateFormat("yyyy-MM", Locale.ROOT).format(cursor.getTime()));
+      labels.add(new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(cursor.getTime()));
+      cursor.add(Calendar.MONTH, 1);
+    }
+    Spinner month =
+        select(
+            content,
+            "Doctor-approved month",
+            labels.toArray(new String[0]),
+            Math.max(0, codes.indexOf(preferred)));
+    EditText reason =
+        input(
+            content,
+            "Clinical reason for this month",
+            s(o(patientData, "month_plan"), "approval_reason"),
+            true);
+    CheckBox confirm = new CheckBox(this);
+    confirm.setText(R.string.month_attestation);
+    confirm.setTextColor(INK);
+    add(content, confirm);
+    JSONObject assessment =
+        result.has("assessment") ? o(result, "assessment") : o(patientData, "month_assessment");
+    String evidence =
+        result.has("evidence_hash") ? s(result, "evidence_hash") : s(patientData, "evidence_hash");
+    button(
+        content,
+        "Approve month for hospital admin",
+        () -> {
+          if (!confirm.isChecked()) {
+            error("Confirm your independent clinical assessment first.");
+            return;
+          }
+          Map<String, String> values =
+              Api.form(
+                  "approved_month",
+                  codes.get(month.getSelectedItemPosition()),
+                  "reason",
+                  text(reason),
+                  "attestation",
+                  "yes",
+                  "evidence_hash",
+                  evidence,
+                  "functional_impact",
+                  s(assessment, "functional_impact"),
+                  "progression",
+                  s(assessment, "progression"),
+                  "planning_preference",
+                  s(assessment, "planning_preference"));
+          run(
+              "Saving your approved month…",
+              () -> api.post("/api/mobile/patients/" + currentCase + "/month", values),
+              r -> {
+                success("Month approved. The hospital admin can choose a free date.");
+                loadCase(currentCase, "Review");
+              });
+        },
+        true);
   }
 
   private EditText dateInput(String title, String value) {
@@ -989,79 +1086,6 @@ public class MainActivity extends Activity {
               .show();
         });
     return e;
-  }
-
-  private void booking(String day, String time) {
-    frame(currentCase, "Confirm surgery", true, true);
-    heading("A plan you approve");
-    para(
-        "A booking is made only after your confirmation. Theatre capacity, bed availability, leave"
-            + " and working hours are checked by the server.");
-    EditText date = dateInput("Surgery date", day),
-        slot = input(content, "Surgery time", time, false);
-    slot.setFocusable(false);
-    slot.setOnClickListener(
-        v ->
-            new TimePickerDialog(
-                    this,
-                    (picker, h, m) -> slot.setText(String.format(Locale.ROOT, "%02d:%02d", h, m)),
-                    9,
-                    0,
-                    true)
-                .show());
-    EditText rationale = input(content, "Clinical scheduling rationale", "", true);
-    button(
-        content,
-        "Confirm selected surgery",
-        () ->
-            new AlertDialog.Builder(this)
-                .setTitle("Confirm this surgery?")
-                .setMessage(
-                    s(o(patientData, "patient"), "full_name")
-                        + "\n"
-                        + text(date)
-                        + " at "
-                        + text(slot)
-                        + "\n\nThe saved appointment and notification will use these details.")
-                .setNegativeButton("Review again", null)
-                .setPositiveButton(
-                    "Confirm",
-                    (dialog, which) ->
-                        run(
-                            "Checking and confirming your selected slot…",
-                            () ->
-                                api.post(
-                                    "/api/mobile/patients/" + currentCase + "/surgery",
-                                    Api.form(
-                                        "surgery_date",
-                                        text(date),
-                                        "slot",
-                                        text(slot),
-                                        "rationale",
-                                        text(rationale))),
-                            r -> confirmation(r)))
-                .show(),
-        true);
-  }
-
-  private void confirmation(JSONObject r) {
-    frame(currentCase, "Surgery confirmed", true, true);
-    heading("Appointment saved.");
-    info("Confirmation", s(r, "message"));
-    info("WhatsApp status", nice(s(r, "delivery_status")) + "\n" + s(r, "delivery_detail"));
-    if (!s(r, "manual_link").isEmpty())
-      button(content, "Open WhatsApp message", () -> open(s(r, "manual_link")), true);
-    para(
-        "For manual delivery, choose the doctor's WhatsApp account in WhatsApp and press Send."
-            + " Opening a message does not mean it was sent.");
-    button(
-        content,
-        "View calendar",
-        () -> {
-          currentCase = "";
-          refresh("Calendar");
-        },
-        false);
   }
 
   private void history() {
@@ -1145,9 +1169,7 @@ public class MainActivity extends Activity {
                       msg -> runOnUiThread(() -> busyLabel.setText(msg)),
                       ids);
                 }
-                runOnUiThread(
-                    () ->
-                        busyLabel.setText(R.string.running_agents));
+                runOnUiThread(() -> busyLabel.setText(R.string.running_agents));
                 return api.post(
                     "/api/mobile/intake",
                     Api.form(
@@ -1251,7 +1273,17 @@ public class MainActivity extends Activity {
   protected void onActivityResult(int request, int result, Intent data) {
     super.onActivityResult(request, result, data);
     if (result != RESULT_OK) return;
-    if (request == 41 && data != null && data.getData() != null) {
+    if (request == 44 && data != null && data.getData() != null) {
+      profilePhoto = data.getData();
+      profilePhotoStatus.setText(R.string.profile_photo_selected);
+      try (InputStream in = getContentResolver().openInputStream(profilePhoto)) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = 4;
+        profilePreview.setImageBitmap(BitmapFactory.decodeStream(in, null, options));
+      } catch (Exception e) {
+        error("The selected photograph could not be read.");
+      }
+    } else if (request == 41 && data != null && data.getData() != null) {
       selected.put(pendingSide, data.getData());
       renderSelections();
     } else if (request == 42 && cameraUri != null) {
@@ -1350,6 +1382,13 @@ public class MainActivity extends Activity {
                     false));
             gap(c, 8);
             add(c, label(s(message, "body"), 14, INK, false));
+            if("surgery".equals(s(message,"category"))) {
+              add(c,label(nice(s(message,"delivery_status"))+" · "+s(message,"delivery_detail"),12,MUTED,false));
+              String phone=s(message,"recipient_phone").replaceAll("[^0-9]","");
+              if(!phone.isEmpty() && !"accepted".equals(s(message,"delivery_status")) && !"sending".equals(s(message,"delivery_status"))) {
+                button(c,"Open WhatsApp message",()->open("https://wa.me/"+phone+"?text="+Uri.encode(s(message,"body"))),false);
+              }
+            }
             if (mailbox.equals("inbox") && !message.isNull("id") && s(message, "read_at").isEmpty())
               button(
                   c,
@@ -1438,15 +1477,116 @@ public class MainActivity extends Activity {
         true);
   }
 
+  private Uri profilePhoto;
+  private ImageView profilePreview;
+  private TextView profilePhotoStatus;
+
   private void profile() {
+    profilePhoto = null;
     frame("Account & preferences", "Your profile", true, true);
     heading(s(me, "name"));
     JSONObject p = o(me, "profile");
-    info("Doctor account", s(me, "username") + "\n" + s(p, "email"));
+    profilePreview = new ImageView(this);
+    profilePreview.setScaleType(ImageView.ScaleType.FIT_CENTER);
+    profilePreview.setContentDescription("Your profile photograph");
+    content.addView(profilePreview, new LinearLayout.LayoutParams(-1, d(150)));
+    if (!s(p, "profile_image").isEmpty()) {
+      int ticket = generation;
+      worker.execute(
+          () -> {
+            try {
+              byte[] bytes = api.request("GET", "/api/mobile/profile/image", null, null);
+              Bitmap photo = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+              runOnUiThread(
+                  () -> {
+                    if (ticket == generation) profilePreview.setImageBitmap(photo);
+                  });
+            } catch (Exception ignored) {
+            }
+          });
+    }
+    profilePhotoStatus = label("Choose a photograph, or keep your current one.", 12, MUTED, false);
+    add(content, profilePhotoStatus);
+    button(
+        content,
+        "Change profile photograph",
+        () -> {
+          Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+          intent.setType("image/*");
+          intent.addCategory(Intent.CATEGORY_OPENABLE);
+          startActivityForResult(intent, 44);
+        },
+        false);
+    EditText username =
+        input(
+            content,
+            "Sign-in username",
+            s(me, "login_name").isEmpty() ? s(me, "username") : s(me, "login_name"),
+            false);
+    username.setInputType(
+        InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+    EditText current = input(content, "Current password (required to change username)", "", false);
+    current.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+    para(
+        "Changing the username signs out existing sessions. Your patients and clinical history"
+            + " remain attached to your account.");
+    button(
+        content,
+        "Save profile",
+        () -> {
+          String newName = text(username),
+              pw = current.getText().toString(),
+              owner = s(me, "username");
+          Uri photo = profilePhoto;
+          run(
+              "Saving your profile…",
+              () -> {
+                List<String> ids = new ArrayList<>();
+                if (photo != null) {
+                  byte[] bytes =
+                      Api.read(getContentResolver().openInputStream(photo), 8 * 1024 * 1024);
+                  api.uploadFor(
+                      "/api/mobile/profile",
+                      owner,
+                      "profile_image",
+                      "profile-photo",
+                      bytes,
+                      msg -> runOnUiThread(() -> busyLabel.setText(msg)),
+                      ids);
+                }
+                JSONObject saved =
+                    api.post(
+                        "/api/mobile/profile",
+                        Api.form(
+                            "username",
+                            owner,
+                            "new_login_name",
+                            newName,
+                            "current_password",
+                            pw,
+                            "cloud_uploads",
+                            new JSONArray(ids).toString()));
+                if (!saved.optBoolean("renamed")) saved.put("me", api.get("/api/mobile/me"));
+                return saved;
+              },
+              r -> {
+                if (r.optBoolean("renamed")) {
+                  api.clear();
+                  me = new JSONObject();
+                  login();
+                  success("Username changed. Sign in with " + s(r, "login_name"));
+                } else {
+                  me = o(r, "me");
+                  profile();
+                  success("Profile saved");
+                }
+              });
+        },
+        true);
+    button(content, "Change password securely", () -> password(), true);
     info(
-        "Working hours", s(p, "working_days") + "\n" + s(p, "work_start") + "–" + s(p, "work_end"));
-    info("Contact", s(p, "mobile") + "\nWhatsApp: " + s(p, "whatsapp_phone"));
-    button(content, "Change password", () -> password(), true);
+        "Working details",
+        s(p, "working_days") + "\n" + s(p, "work_start") + "–" + s(p, "work_end"));
     button(content, "Request leave", () -> leave(), false);
     button(content, "Doctor directory", () -> directory(), false);
     button(content, "Models & agents", () -> models(), false);
@@ -1465,10 +1605,7 @@ public class MainActivity extends Activity {
                   login();
                 }),
         false);
-    para(
-        "CataTriage Doctor 1.0.0\n"
-            + "Native Android workspace · Online connection required\n"
-            + "The same server-side research models power this app and the website.");
+    para("CataTriage Doctor 1.1.0 · Online connection required");
   }
 
   private void password() {

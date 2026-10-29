@@ -62,6 +62,17 @@ def connection(db_path: Path | str = DB_PATH):
 
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS account_login_names(
+ username TEXT PRIMARY KEY REFERENCES users(username) ON DELETE CASCADE,
+ login_name TEXT NOT NULL UNIQUE, updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS surgery_month_plans(
+ case_id TEXT PRIMARY KEY REFERENCES cases(case_id) ON DELETE CASCADE,
+ doctor_username TEXT NOT NULL REFERENCES users(username),
+ suggested_month TEXT, approved_month TEXT, approval_reason TEXT NOT NULL DEFAULT '',
+ approved_by TEXT, approved_at TEXT, evidence_hash TEXT NOT NULL,
+ assessment_json TEXT NOT NULL DEFAULT '{}', suggestion_json TEXT NOT NULL DEFAULT '{}'
+);
 CREATE TABLE IF NOT EXISTS account_archives(
  entity_type TEXT NOT NULL, entity_key TEXT NOT NULL, archived_by TEXT NOT NULL,
  archived_at TEXT NOT NULL, previous_state TEXT NOT NULL DEFAULT '{}', restored_at TEXT,
@@ -259,7 +270,7 @@ def initialize_database(db_path: Path | str = DB_PATH, force_reset: bool = False
         elif version[0] != SCHEMA_VERSION:
             raise RuntimeError(f"Unsupported demo DB schema {version[0]}")
         if force_reset:
-            for table in ("staff_messages","outbound_notifications","account_security","authentication_attempts","account_archives"):
+            for table in ("surgery_month_plans","account_login_names","staff_messages","outbound_notifications","account_security","authentication_attempts","account_archives"):
                 con.execute(f"DELETE FROM {table}")
             con.execute("DELETE FROM google_identities")
             con.execute("DELETE FROM google_access_requests")

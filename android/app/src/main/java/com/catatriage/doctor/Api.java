@@ -121,7 +121,10 @@ final class Api {
           JSONObject err = new JSONObject(new String(raw, StandardCharsets.UTF_8));
           if (err.opt("detail") instanceof JSONArray) {
             JSONObject issue = err.getJSONArray("detail").optJSONObject(0);
-            message = issue == null ? "Check the required form values." : issue.optString("msg", "Check the required form values.");
+            message =
+                issue == null
+                    ? "Check the required form values."
+                    : issue.optString("msg", "Check the required form values.");
           } else message = err.optString("error", err.optString("detail", message));
         } catch (Exception ignored) {
         }
@@ -159,9 +162,21 @@ final class Api {
       java.util.function.Consumer<String> progress,
       List<String> ids)
       throws Exception {
+    uploadFor("/api/mobile/intake", caseId, field, name, bytes, progress, ids);
+  }
+
+  void uploadFor(
+      String action,
+      String caseId,
+      String field,
+      String name,
+      byte[] bytes,
+      java.util.function.Consumer<String> progress,
+      List<String> ids)
+      throws Exception {
     JSONObject metadata =
         new JSONObject()
-            .put("action", "/api/mobile/intake")
+            .put("action", action)
             .put("target", caseId)
             .put("field", field)
             .put("name", name)

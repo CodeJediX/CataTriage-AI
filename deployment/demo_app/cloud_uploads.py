@@ -31,6 +31,7 @@ async def prepare(request:Request):
     data=await request.json()
     action=data.get("action",""); target=str(data.get("target", "")); field=data.get("field","")
     allowed={"/intake":{"left_images","right_images","unknown_images"},"/api/mobile/intake":{"left_images","right_images","unknown_images"},"/admin/doctors":{"profile_image"},
+             "/doctor/profile":{"profile_image"},"/api/mobile/profile":{"profile_image"},
              "/support/quality-check":{"image"},"/real-lab/fusion":{"image"},"/api/analyze":{"image"}}
     if action.startswith("/cases/") and action.endswith("/analysis"):
         if target!=action.split("/")[2]: raise HTTPException(400,"Image target does not match this case.")
@@ -38,6 +39,8 @@ async def prepare(request:Request):
     elif action in {"/intake","/api/mobile/intake"}:
         if user["r"]=="admin": raise HTTPException(403,"Clinical role required.")
         require_assignment(user,target)
+    elif action in {'/doctor/profile','/api/mobile/profile'}:
+        if user['r']!='doctor' or target!=user['u']: raise HTTPException(403,'Edit only your own profile.')
     elif action=="/admin/doctors":
         if user["r"]!="admin": raise HTTPException(403,"Administrator required.")
     elif action=="/support/quality-check":

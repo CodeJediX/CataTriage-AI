@@ -38,8 +38,8 @@
   </nav>
   <div class="sidebar-foot">
     <span class="role-chip">{{ user.r }}</span>
-    <strong>{{ user.n }}</strong><small>{{ user.u }}</small>
-    {% if user.r=='doctor' %}<a class="account-link" href="/login/doctor/password">Change password</a>{% endif %}
+    <strong>{{ user.n }}</strong><small>{{ user.login_name or user.u }}</small>
+    {% if user.r=='doctor' %}<a class="account-link" href="/doctor/profile">My profile &amp; security</a>{% endif %}
     <form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="link-button">Sign out</button></form>
   </div>
 </aside>

@@ -1,8 +1,8 @@
 {
-  "version": "1.0.0",
-  "filename": "CataTriage-Doctor-1.0.0.apk",
-  "sha256": "7d166a30a75ff3be8d45469bdbca860caa0d549e01457d22ec7ed864243959b0",
-  "bytes": 1012340,
+  "version": "1.1.0",
+  "filename": "CataTriage-Doctor-1.1.0.apk",
+  "sha256": "d903923a9aabde9b2c8fc4a55dade4ffc56cb126a95b2662721e2f3c05b0d21e",
+  "bytes": 1015132,
   "minimum_android": "8.0",
   "package": "com.catatriage.doctor"
 }

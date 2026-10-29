@@ -54,14 +54,18 @@ def me(request:Request):
     user=doctor(request,True); m=core()
     with m.connection() as con:
         profile=con.execute("SELECT * FROM doctor_profiles WHERE username=?",(user["u"],)).fetchone()
-    return {"username":user["u"],"name":user["n"],"must_change":user["must_change"],"profile":dict(profile) if profile else {}}
+    from . import doctor_account
+    with m.connection() as con: name=doctor_account.login_name(con,user['u'])
+    return {"username":user["u"],"login_name":name,"name":user["n"],"must_change":user["must_change"],"profile":dict(profile) if profile else {}}
 
 
 @router.post("/password")
 def password(request:Request,username:str=Form(...,max_length=80),current_password:str=Form(...,max_length=128),new_password:str=Form(...,max_length=128),confirmation:str=Form(...,max_length=128),csrf:str=Form(...)):
     user=doctor(request,True)
     if username.strip().lower()!=user["u"]: raise HTTPException(403,"Change only your own password.")
-    result=core().change_doctor_password(request,username,current_password,new_password,confirmation,csrf)
+    from . import doctor_account
+    with core().connection() as con: name=doctor_account.login_name(con,username)
+    result=core().change_doctor_password(request,name,current_password,new_password,confirmation,csrf)
     response_context(result)
     response=JSONResponse({"changed":True,"message":"Password changed. Sign in again."})
     response.delete_cookie("catatriage_session")
@@ -107,7 +111,10 @@ def patient(request:Request,case_id:str):
     with m.role_connection(m.DOCTOR_DB_PATH) as con:
         assessments=[dict(r) for r in con.execute("SELECT * FROM self_assessments WHERE case_id=? ORDER BY id DESC",(case_id,))]
         messages=[dict(r) for r in con.execute("SELECT * FROM messages WHERE case_id=? ORDER BY id DESC LIMIT 50",(case_id,))]
-    return {"patient":dict(profile),"case":record,"analysis":analysis,"images":current,"older_images":older,"eye_summary":summary,"history":history,"assessments":assessments,"messages":messages,"surgery":dict(surgery) if surgery else None}
+    from .enhancements import month_context
+    original={**record,'analysis_json':json.dumps(analysis),'image_path':None,'image_sha256':None}
+    with m.connection() as con: original=dict(m._case(con,case_id))
+    return {"patient":dict(profile),"case":record,"analysis":analysis,"images":current,"older_images":older,"eye_summary":summary,"history":history,"assessments":assessments,"messages":messages,"surgery":dict(surgery) if surgery else None,**month_context(m,user,original)}
 
 
 @router.get("/images/{image_id}")
@@ -140,6 +147,7 @@ def read(request:Request,message_id:int,csrf:str=Form(...)):
 def notes(request:Request,case_id:str,symptoms:str=Form("",max_length=20000),notes:str=Form("",max_length=20000),csrf:str=Form(...)):
     m=core(); user=doctor(request); m.verify_csrf(request,csrf); m.require_assignment(user,case_id)
     with m.connection() as con:
+        con.execute('BEGIN IMMEDIATE')
         con.execute("UPDATE cases SET symptoms=?,notes=? WHERE case_id=?",(symptoms.strip(),notes.strip(),case_id))
         m.audit(con,user["u"],"doctor","clinical_context_updated",case_id,"Doctor updated symptoms and clinical notes using Android.")
     return {"saved":True}
@@ -152,9 +160,9 @@ def review(request:Request,case_id:str,decision:str=Form(...),tier:str=Form(""),
 
 
 @router.post("/patients/{case_id}/suggestion")
-def suggestion(request:Request,case_id:str,symptoms:str=Form("",max_length=20000),notes:str=Form("",max_length=20000),csrf:str=Form(...)):
+def suggestion(request:Request,case_id:str,symptoms:str=Form("",max_length=20000),notes:str=Form("",max_length=20000),csrf:str=Form(...),functional_impact:str=Form('unknown'),progression:str=Form('unknown'),planning_preference:str=Form('balanced')):
     doctor(request)
-    return {"suggestion":response_context(core().surgery_suggestion(request,case_id,csrf,"1",symptoms,notes))["suggestion"]}
+    return {"suggestion":response_context(core().surgery_suggestion(request,case_id,csrf,"1",symptoms,notes,functional_impact,progression,planning_preference))["suggestion"]}
 
 
 @router.post("/patients/{case_id}/surgery")

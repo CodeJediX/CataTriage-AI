@@ -21,15 +21,23 @@
   },
   {
     "path": "deployment/demo_app/cloud_uploads.py",
-    "sha256": "733c70cf6ad7858309e7b95099a319cd63d11cc7156b6c7d875710ed28dfe98c"
+    "sha256": "36a00b5f55a087f1a940c3cf2da65df457572f480df6e452d81e9588a5888e9f"
   },
   {
     "path": "deployment/demo_app/communications.py",
-    "sha256": "d9d66924c93a2da42c425ef544cc14c645b0144b1e7ee6d2b14e052822c426e4"
+    "sha256": "7c078c67a292151792ea5dd364cbe69fc2cfdbb1c96b6fa086f319680d125cff"
   },
   {
     "path": "deployment/demo_app/database.py",
-    "sha256": "4c25a2e2439c100c0fa02934ef123dfb4ea3a0b4a0bb44a458efc3e055d1e58b"
+    "sha256": "041056910fc709165425e605d1b2632866ea4f267b9eacf4538cd40c452f1328"
+  },
+  {
+    "path": "deployment/demo_app/doctor_account.py",
+    "sha256": "d19c629921a33094c7cd387d75cc80246e5440916edb5fbc265aec265fb14f51"
+  },
+  {
+    "path": "deployment/demo_app/enhancements.py",
+    "sha256": "81a2c0cfc76e43fb8fe32498522cc9620622b30363853afcd8b4019f2ac9bd71"
   },
   {
     "path": "deployment/demo_app/eye_summary.py",
@@ -57,15 +65,23 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "723810e0b22647a8c1d9b7bb79d4fcec30edadebc5b203f3280efb657e0ba31b"
+    "sha256": "6e4430cc362208a8a1454434328ea6856381a3ed8b08f886eeffcb4843b70f6d"
   },
   {
     "path": "deployment/demo_app/mobile_api.py",
-    "sha256": "f17677f667a0f42772d7c625b2b8af7cb37db4a6093181c486298b469d6eef63"
+    "sha256": "34c3e9918275f36f2f88712390d3b0fb40c7de58c6576c60a77d996dd01258a2"
   },
   {
     "path": "deployment/demo_app/model_provider.py",
     "sha256": "a92b9b430693b379a0b2bf082c5338a713f5288ab1e0119cc1c4cc3d5aaf3dbf"
+  },
+  {
+    "path": "deployment/demo_app/month_planning.py",
+    "sha256": "94a83cfe471540a2dfd01865145ed4ebdeab5b1a0b2fe839f3d59d669ff74d70"
+  },
+  {
+    "path": "deployment/demo_app/planning_ai.py",
+    "sha256": "fd9e36d0a54ff9ddb1f262c67e1667749c54d879fb9239ad90f20da00942c8b0"
   },
   {
     "path": "deployment/demo_app/real_models.py",
@@ -121,7 +137,7 @@
   },
   {
     "path": "deployment/demo_app/static/hospital.css",
-    "sha256": "60df536b1b6c84235bd17597095ba4fc5b7b100579ab44439dbc38a37340e70c"
+    "sha256": "3472c2a0a6ed38b2e4d77aa2e861924c0fad38970fd09c0ae21b2590fa5cd38f"
   },
   {
     "path": "deployment/demo_app/static/identity.css",
@@ -145,11 +161,15 @@
   },
   {
     "path": "deployment/demo_app/templates/admin.html",
-    "sha256": "041bca0f55806ddaa2c8d0d0adc02f16b67287f32393a6328e44e6fa3e37ee8c"
+    "sha256": "d15cdec0e80968488ef71a6a06db83acae1cb837f130bf72b4325daf98948e60"
+  },
+  {
+    "path": "deployment/demo_app/templates/admin_month_calendar.html",
+    "sha256": "1fd372ee62ee8c59e54af6747191678fb8fcad7c704c1e800492f2303a0426d7"
   },
   {
     "path": "deployment/demo_app/templates/android.html",
-    "sha256": "797caaaee39c85730e5a9ab9ccf571176305fa846bc0a929c7331256dcede84d"
+    "sha256": "4dde9932ce9e74a7120e19e66cef4f30f687ddc16eeb2aa824271ef8bd206ba3"
   },
   {
     "path": "deployment/demo_app/templates/audit.html",
@@ -157,7 +177,7 @@
   },
   {
     "path": "deployment/demo_app/templates/base.html",
-    "sha256": "dbb367a281043dad199c86dbf767c28cc40f19a01b5efe815e90dda3559c03b6"
+    "sha256": "b944d13eb168d10897db8a3b751bc99be7930361ff7300e6725881bbbfb7f992"
   },
   {
     "path": "deployment/demo_app/templates/calendar.html",
@@ -173,11 +193,15 @@
   },
   {
     "path": "deployment/demo_app/templates/clinical_review.html",
-    "sha256": "ead77a7ffde3f88acf3cd2c8caa79f7c2d21c89bae8587c5dc7bfa42b0af5f37"
+    "sha256": "14ab133509507f58728e0cd7ad815743f640c30246e28ecec978071377c67b62"
   },
   {
     "path": "deployment/demo_app/templates/doctor.html",
     "sha256": "5eaed97900a2812c614664d3048aab1c3419fae497dd10cda0a9fdb6543bf880"
+  },
+  {
+    "path": "deployment/demo_app/templates/doctor_profile.html",
+    "sha256": "c701b7e3ba37bef214fcf5ea8dc058264ae2cab5beca5427a171fc01f6150c40"
   },
   {
     "path": "deployment/demo_app/templates/doctor_review.html",
@@ -185,7 +209,7 @@
   },
   {
     "path": "deployment/demo_app/templates/doctor_workspace.html",
-    "sha256": "dc2db2d340da07374dd6ea6ad584b7d86f9f168dc7728970e6af76a59e8ffe3a"
+    "sha256": "3fd0190ef6477c7861343e2f5a64ab59178abe1f1d013bb319eb28688d03768c"
   },
   {
     "path": "deployment/demo_app/templates/error.html",
@@ -216,6 +240,10 @@
     "sha256": "c46e2beedc1eed0f1bd3175f849008c2381b60f752f2523696969b87229d0580"
   },
   {
+    "path": "deployment/demo_app/templates/month_board.html",
+    "sha256": "459216a20e523d3280585f3849da34f885dd05ca869c3f4c009f2af5c5099f4b"
+  },
+  {
     "path": "deployment/demo_app/templates/new_case.html",
     "sha256": "18262aacec720706c028d6a05d63a99b656c9643b4e83fc462037eb2b26db0ca"
   },
@@ -225,7 +253,7 @@
   },
   {
     "path": "deployment/demo_app/templates/password_change.html",
-    "sha256": "91917b7ebd1ab273a2868758136af1873edd4212cb6fb6987ff13b40d525257f"
+    "sha256": "7a337bc4541ea04a7717bca178346c38423f227d64c6e4799f76efc5896f2171"
   },
   {
     "path": "deployment/demo_app/templates/print_case.html",
@@ -233,7 +261,7 @@
   },
   {
     "path": "deployment/demo_app/templates/queue.html",
-    "sha256": "a73c9c21ffa107f2272a28991600b8236124f3d1297daeee4ba0add3150bddbf"
+    "sha256": "3b7cf67969a59fcb9ee00925dd13a5ccfd2d763945d505ca32b859e3efad7361"
   },
   {
     "path": "deployment/demo_app/templates/real_lab.html",
@@ -241,7 +269,7 @@
   },
   {
     "path": "deployment/demo_app/templates/schedule_calendar.html",
-    "sha256": "99f0e5d62ff9b2c5c9956dbef1a076bb2843c3b4da66862c1c5fe5c8fe85cfe3"
+    "sha256": "2641b2ce1785d3a342328c546a2b9843ab4c7794118f36f2447f5421ba8f7615"
   },
   {
     "path": "deployment/demo_app/templates/simulation.html",
@@ -320,8 +348,12 @@
     "sha256": "1433cd8ddd833f868b8d49d4a0f6d7a4f333c3fb272eda5d5f77de3108355395"
   },
   {
+    "path": "docs/PROFILE_AND_MONTH_PLANNING.md",
+    "sha256": "4c77a59d0fd15b3137e92b96b2dbf00b0d4e53802f8ad739e78ee679cd0d16d8"
+  },
+  {
     "path": "tools/build_android.ps1",
-    "sha256": "3e259996345bcf497af48be4c4bfbb9913a5e2b4d6baf4b4b183984596c7de59"
+    "sha256": "69e2d531a5ee6d7a93d34360b56a64ab68aee8ff362735143fcc8281ea350436"
   },
   {
     "path": "tools/prepare_android_signing.py",
@@ -353,7 +385,7 @@
   },
   {
     "path": "android/README.md",
-    "sha256": "1405a58b8b4d1e0f821f0284f0a1d385ac89ec42e4de35908ebb21e149cab5df"
+    "sha256": "515b719e56cfcef37aa06110adfc56e37322bf315c24e7d46d6309d99774190e"
   },
   {
     "path": "android/settings.gradle",
@@ -361,7 +393,7 @@
   },
   {
     "path": "android/app/build.gradle",
-    "sha256": "aec96e0c8f80c2001cc1f4c62ec789d9b58fdaf67753ace7ea2c073e1dc0f5de"
+    "sha256": "b69c73bb3a646551fd12ea443cfdb9479c5e322490fd126aa7a92b134a5d52e7"
   },
   {
     "path": "android/app/src/androidTest/AndroidManifest.xml",
@@ -369,7 +401,7 @@
   },
   {
     "path": "android/app/src/androidTest/java/com/catatriage/doctor/DoctorSmokeTest.java",
-    "sha256": "31754fd87d66c3707d3b4098b2ec46f00995d18f5ac7feb567f9c8d3153a5c46"
+    "sha256": "8e1e310e52860c4b61b9f247a3a32067a38362a5d2148cbc053324316a645da2"
   },
   {
     "path": "android/app/src/main/AndroidManifest.xml",
@@ -377,7 +409,7 @@
   },
   {
     "path": "android/app/src/main/java/com/catatriage/doctor/Api.java",
-    "sha256": "60b8e96d04aae6e3510690bf5ead3004e80e0dd3e7d97c876b0a9777de46b39a"
+    "sha256": "f01a9fb9570dd016ef3e39b035a344b12fefefcc4227b481e92222de38502e05"
   },
   {
     "path": "android/app/src/main/java/com/catatriage/doctor/CaptureProvider.java",
@@ -389,7 +421,7 @@
   },
   {
     "path": "android/app/src/main/java/com/catatriage/doctor/MainActivity.java",
-    "sha256": "8a42c691ce0215fb47ac21e125d11ba0d25229f3b2db6f7449c84055670bf2cd"
+    "sha256": "74456eea780e158adb3ccf55b7083bdc9ed30c7677ba20720efb7dc947441a26"
   },
   {
     "path": "android/app/src/main/java/com/catatriage/doctor/ReportPdf.java",
@@ -405,7 +437,7 @@
   },
   {
     "path": "android/app/src/main/res/values/strings.xml",
-    "sha256": "993838b6643c9c2c318016b2bc8ffb75c5d52009d7e6f91179dfc523994ea18f"
+    "sha256": "55d672876acc0760cd9801154255c85da9622f61e4010731b5f36bcecbe57683"
   },
   {
     "path": "android/app/src/main/res/values/styles.xml",
@@ -432,8 +464,12 @@
     "sha256": "7d166a30a75ff3be8d45469bdbca860caa0d549e01457d22ec7ed864243959b0"
   },
   {
+    "path": "output/android/CataTriage-Doctor-1.1.0.apk",
+    "sha256": "d903923a9aabde9b2c8fc4a55dade4ffc56cb126a95b2662721e2f3c05b0d21e"
+  },
+  {
     "path": "output/android/release.json",
-    "sha256": "0fd0f4e15e076fd094fed996c754edfa80fef14fdc41a8e9287d5549146dac94"
+    "sha256": "83c7182e9b3b8bf3eff1ba5587a92e449e669eb434a6003d80140e382bb95ad2"
   },
   {
     "path": "reports/model_evaluation_v3/accuracy.png",

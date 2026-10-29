@@ -15,6 +15,6 @@ if($cachedGradle){& $cachedGradle -p android assembleRelease lintRelease}else{& 
 if($LASTEXITCODE -ne 0){throw 'Android build or lint failed.'}
 $destination=Join-Path $projectRoot 'output\android'
 New-Item $destination -ItemType Directory -Force | Out-Null
-Copy-Item 'android/app/build/outputs/apk/release/app-release.apk' (Join-Path $destination 'CataTriage-Doctor-1.0.0.apk') -Force
-& (Join-Path $projectRoot '.venv\Scripts\python.exe') -c "import hashlib,json;from pathlib import Path;p=Path('output/android/CataTriage-Doctor-1.0.0.apk');Path('output/android/release.json').write_text(json.dumps({'version':'1.0.0','filename':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'bytes':p.stat().st_size,'minimum_android':'8.0','package':'com.catatriage.doctor'},indent=2))"
+Copy-Item 'android/app/build/outputs/apk/release/app-release.apk' (Join-Path $destination 'CataTriage-Doctor-1.1.0.apk') -Force
+& (Join-Path $projectRoot '.venv\Scripts\python.exe') -c "import hashlib,json;from pathlib import Path;p=Path('output/android/CataTriage-Doctor-1.1.0.apk');Path('output/android/release.json').write_text(json.dumps({'version':'1.1.0','filename':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'bytes':p.stat().st_size,'minimum_android':'8.0','package':'com.catatriage.doctor'},indent=2))"
 Write-Output 'Release APK and checksum are in output/android.'
