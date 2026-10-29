@@ -37,7 +37,7 @@ from . import account_security, communications, account_management, firebase_mai
 from .cloud_uploads import router as upload_router, restore as restore_uploads
 from .mobile_api import router as mobile_router
 from .enhancements import router as enhancements_router
-from . import doctor_account, month_planning
+from . import doctor_account, month_planning, surgery_alerts
 from .clinical_planning import clinical_review, clinical_context
 
 APP_DIR = Path(__file__).resolve().parent
@@ -169,8 +169,12 @@ def redirect_login(next_path: str = "/") -> RedirectResponse:
 def render(request: Request, name: str, **context) -> HTMLResponse:
     csrf = ensure_csrf(request)
     response_status = int(context.pop("response_status", 200))
-    response = templates.TemplateResponse(request, name, {"user": read_session(request), "csrf": csrf, "today": date.today(),
-        "auth_page":request.url.path.startswith('/login'),
+    user = read_session(request)
+    auth_page = request.url.path.startswith('/login')
+    pending_count = len(surgery_alerts.for_request(request, user)) if user and not auth_page else 0
+    response = templates.TemplateResponse(request, name, {"user": user, "csrf": csrf, "today": date.today(),
+        "pending_surgery_count":pending_count,
+        "auth_page":auth_page,
         "google_enabled":google_enabled(), "google_pending":request.query_params.get("google_status")=="pending",
         "hosted":os.getenv("CATATRIAGE_HOSTED")=="true", "ephemeral":os.getenv("CATATRIAGE_EPHEMERAL")=="true",
         "cloud_database":cloud_database.enabled(), **context}, status_code=response_status)

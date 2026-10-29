@@ -4,7 +4,7 @@ import json
 from uuid import uuid4
 from fastapi import APIRouter,File,Form,HTTPException,Request,UploadFile
 from fastapi.responses import JSONResponse,RedirectResponse
-from . import doctor_account,month_planning
+from . import doctor_account,month_planning,surgery_alerts
 
 router=APIRouter()
 
@@ -34,6 +34,24 @@ def profile_page(request:Request):
 
 @router.get('/api/mobile/profile')
 def profile_api(request:Request): return profile_context(core(),doctor(request))
+
+
+@router.get('/api/surgery/pending')
+def pending_summary(request:Request):
+    user=core().require_user(request)
+    rows=surgery_alerts.for_request(request,user)
+    return JSONResponse({'count':len(rows),'href':'/surgery/pending'},headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
+
+
+@router.get('/surgery/pending')
+def pending_surgery_page(request:Request):
+    m=core();user=m.require_user(request)
+    rows=surgery_alerts.for_request(request,user)
+    with m.connection() as con:
+        for row in rows:
+            plan=month_planning.current_plan(con,m._case(con,row['case_id']),row['doctor_username'])
+            row['needs_review']=not plan or not plan['is_current']
+    return m.render(request,'pending_surgeries.html',page='calendar',pending_cases=rows)
 
 
 @router.get('/api/mobile/profile/image')

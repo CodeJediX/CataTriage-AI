@@ -9,12 +9,13 @@
   <link rel="stylesheet" href="/static/responsive.css">
   <link rel="stylesheet" href="/static/app-extra.css">
   <link rel="stylesheet" href="/static/simulation.css">
-  <link rel="stylesheet" href="/static/hospital.css?v=20261027-accounts">
+  <link rel="stylesheet" href="/static/hospital.css?v=20261029-surgery-bell">
   <link rel="stylesheet" href="/static/identity.css?v=20261027">
   <script src="/static/cloud-uploads.js" defer></script>
   <script src="/static/app.js" defer></script>
+  {% if user and not auth_page %}<script src="/static/surgery-alerts.js?v=20261029" defer></script>{% endif %}
 </head>
-<body class="{% if not user or auth_page %}auth-body{% endif %} {% if auth_page %}identity-page{% endif %}" data-cloud-uploads="{{ 'true' if cloud_database else 'false' }}">
+<body class="{% if not user or auth_page %}auth-body{% endif %} {% if auth_page %}identity-page{% endif %} {{ 'has-pending-surgery' if pending_surgery_count else '' }}" data-cloud-uploads="{{ 'true' if cloud_database else 'false' }}">
 {% if auth_page %}<div class="optical-background" aria-hidden="true"><div class="optical-grid"></div><div class="optical-orbit"><i></i><i></i><i></i><b></b></div><div class="optical-light"></div></div>{% endif %}
 <div id="app-preloader" class="preloader" role="status" aria-live="polite"><div class="preloader-core"><span class="preloader-eye"><i></i></span><strong>CataTriage-AI</strong><small>Preparing the secure clinical workspace</small><div class="preloader-track"><i></i></div></div></div>
 {% if user and not auth_page %}
@@ -49,5 +50,14 @@
   {% if user and not auth_page %}<div class="safety-strip"><strong>RESEARCH PROTOTYPE</strong><span>Models use public retrospective research datasets. Demo cases stay fictional. Not for diagnosis, treatment, or patient care.</span></div>{% endif %}
   {% block content %}{% endblock %}
 </main>
+{% if user and not auth_page %}
+<a id="pending-surgery-bell" class="surgery-bell" href="/surgery/pending" {% if not pending_surgery_count %}hidden{% endif %}
+   aria-label="{{ pending_surgery_count }} patient{{ 's' if pending_surgery_count!=1 else '' }} awaiting a surgery date. View pending scheduling."
+   title="Doctor-approved months awaiting an exact surgery date">
+  <span class="surgery-bell-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4M12 2V1"/></svg><span class="surgery-bell-count" data-pending-count>{{ pending_surgery_count if pending_surgery_count<100 else '99+' }}</span></span>
+  <span class="surgery-bell-label">Awaiting surgery date<small>Month approved · date pending</small></span>
+</a>
+<span id="pending-surgery-announcement" class="surgery-alert-sr" role="status" aria-live="polite" aria-atomic="true"></span>
+{% endif %}
 </body>
 </html>

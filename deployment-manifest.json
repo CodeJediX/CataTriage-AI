@@ -37,7 +37,7 @@
   },
   {
     "path": "deployment/demo_app/enhancements.py",
-    "sha256": "81a2c0cfc76e43fb8fe32498522cc9620622b30363853afcd8b4019f2ac9bd71"
+    "sha256": "8c7fe1db7bd0ac3236566d3052347dd3f4bed0a49b0e3fbb91eba8bee266d190"
   },
   {
     "path": "deployment/demo_app/eye_summary.py",
@@ -65,7 +65,7 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "6e4430cc362208a8a1454434328ea6856381a3ed8b08f886eeffcb4843b70f6d"
+    "sha256": "fb252af473cee24faa8b3c23d0107a6af72b99741f5dcaa87af6119b246e28f9"
   },
   {
     "path": "deployment/demo_app/mobile_api.py",
@@ -98,6 +98,10 @@
   {
     "path": "deployment/demo_app/supabase-ca.crt",
     "sha256": "700723581420dd1ac98fd7e9ac529f0ef210eadcaf87fc868a3ad7d114c2f3b7"
+  },
+  {
+    "path": "deployment/demo_app/surgery_alerts.py",
+    "sha256": "a4db066340c865075391a40fcbf3c9025a7d8a0319bd9f5c98b404c45d65b1b3"
   },
   {
     "path": "deployment/demo_app/synthetic_models.py",
@@ -137,7 +141,7 @@
   },
   {
     "path": "deployment/demo_app/static/hospital.css",
-    "sha256": "3472c2a0a6ed38b2e4d77aa2e861924c0fad38970fd09c0ae21b2590fa5cd38f"
+    "sha256": "67ff50bad8700487a660a53515ce31d38f719bb7c57da4c382c4dac841d69434"
   },
   {
     "path": "deployment/demo_app/static/identity.css",
@@ -150,6 +154,10 @@
   {
     "path": "deployment/demo_app/static/simulation.css",
     "sha256": "edb9b7d7c8cef034bfa9bd648f9567c8be5c60f3909620e1741563b15a93c598"
+  },
+  {
+    "path": "deployment/demo_app/static/surgery-alerts.js",
+    "sha256": "cef42d65e2020b83e0ab8ccf904abc7251f3b7a0bf780be7ac7d9d0036a87c7c"
   },
   {
     "path": "deployment/demo_app/templates/about.html",
@@ -177,7 +185,7 @@
   },
   {
     "path": "deployment/demo_app/templates/base.html",
-    "sha256": "b944d13eb168d10897db8a3b751bc99be7930361ff7300e6725881bbbfb7f992"
+    "sha256": "ee5994960da1d69402e67b577e684138f9771104e74de65a34cbc804de40e892"
   },
   {
     "path": "deployment/demo_app/templates/calendar.html",
@@ -256,6 +264,10 @@
     "sha256": "7a337bc4541ea04a7717bca178346c38423f227d64c6e4799f76efc5896f2171"
   },
   {
+    "path": "deployment/demo_app/templates/pending_surgeries.html",
+    "sha256": "d93023ea3404022d5ce17de42d4c840e679752995e2f1e55216d9ba130f0c3f3"
+  },
+  {
     "path": "deployment/demo_app/templates/print_case.html",
     "sha256": "c3356829b662bca92bd20b94fa2b87c62b3c62edd9e57ca7983a10be9ef60b3f"
   },
@@ -269,7 +281,7 @@
   },
   {
     "path": "deployment/demo_app/templates/schedule_calendar.html",
-    "sha256": "2641b2ce1785d3a342328c546a2b9843ab4c7794118f36f2447f5421ba8f7615"
+    "sha256": "8ec757c72a0ec8cd094d5b31038ed5481d24de2d725e0340e5641ce6a0848ac4"
   },
   {
     "path": "deployment/demo_app/templates/simulation.html",
@@ -349,7 +361,7 @@
   },
   {
     "path": "docs/PROFILE_AND_MONTH_PLANNING.md",
-    "sha256": "4c77a59d0fd15b3137e92b96b2dbf00b0d4e53802f8ad739e78ee679cd0d16d8"
+    "sha256": "2e20f5313285ccd681d147f08124dbf215396ed3da41fcebb5930cdc0f542b16"
   },
   {
     "path": "tools/build_android.ps1",
