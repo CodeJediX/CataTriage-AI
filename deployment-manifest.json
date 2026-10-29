@@ -65,7 +65,7 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "436d33d4c3c185d9ed796ef2c061bb0dda962cc125db5b2add7fd7f30952a3e8"
+    "sha256": "dfbbabf083ee0ce83ad6e996bcee12fd9527627129b107b9e8b4eb8e94b61420"
   },
   {
     "path": "deployment/demo_app/mobile_api.py",
@@ -261,7 +261,7 @@
   },
   {
     "path": "deployment/demo_app/templates/model.html",
-    "sha256": "d98c03eb3ee4ab45ba2b3ad6798ec8b87d296b15417bda427b61e8c22f28ee8c"
+    "sha256": "55e97ce2dbcea42bb8ab27b0d3e31abd78f7f7bd0211c26d08107240c8b207c5"
   },
   {
     "path": "deployment/demo_app/templates/month_board.html",

@@ -1212,7 +1212,6 @@ def calendar_page(request: Request, kind: str = "meeting", month: str = ""):
 @app.get("/model", response_class=HTMLResponse)
 def model_page(request: Request):
     if not read_session(request): return redirect_login("/model")
-    if read_session(request)["r"]=="doctor": return RedirectResponse("/doctor",status_code=303)
     metrics = {}
     for key, folder in (("multidata", "cataract_grade_multidata_real"), ("fusion", "clinical_fusion_catscreen_real")):
         path = ROOT / "models" / folder / "metrics.json"
