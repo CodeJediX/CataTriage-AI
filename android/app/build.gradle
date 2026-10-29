@@ -1,0 +1,40 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.catatriage.doctor'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.catatriage.doctor'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+        buildConfigField 'String', 'API_ORIGIN', '"https://catatriage-ai.vercel.app"'
+    }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        release {
+            def config = System.getenv('CATATRIAGE_ANDROID_SIGNING')
+            if (config) {
+                def secrets = new Properties()
+                file(config).withInputStream { secrets.load(it) }
+                storeFile file(secrets['storeFile'])
+                storePassword secrets['storePassword']
+                keyAlias secrets['keyAlias']
+                keyPassword secrets['keyPassword']
+            }
+        }
+    }
+    buildTypes {
+        release { signingConfig signingConfigs.release; minifyEnabled false }
+        qa {
+            initWith debug
+            applicationIdSuffix '.qa'
+            buildConfigField 'String', 'API_ORIGIN', '"http://10.0.2.2:8002"'
+        }
+    }
+    testBuildType 'qa'
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}

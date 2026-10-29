@@ -26,7 +26,7 @@ from .model_provider import ImageValidationError, MODEL_ID, provider, validate_i
 from .real_models import real_provider
 from .eye_summary import summarize_eyes, partition_images
 from .role_databases import DOCTOR_DB_PATH, TECHNICIAN_DB_PATH, initialize_role_databases, role_connection, sync_doctor_directory
-from .synthetic_models import GRADE_NAMES, synthetic_provider
+from .lazy_synthetic import GRADE_NAMES, synthetic_provider
 from .advisory import suggest_surgery_date
 from .hospital import affected_bookings, doctor_available, leave_covers, require_assignment, reserve_surgery, send_whatsapp, validated_date, valid_time
 from .google_auth import enabled as google_enabled, router as google_router
@@ -35,6 +35,7 @@ from agents.workflow import run_workflow
 from . import cloud_database, file_store
 from . import account_security, communications, account_management, firebase_mail
 from .cloud_uploads import router as upload_router, restore as restore_uploads
+from .mobile_api import router as mobile_router
 
 APP_DIR = Path(__file__).resolve().parent
 ROOT = APP_DIR.parents[1]
@@ -64,6 +65,7 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.include_router(google_router)
 app.include_router(upload_router)
+app.include_router(mobile_router)
 templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 
@@ -126,10 +128,14 @@ def read_session(request: Request) -> dict | None:
 
 @app.middleware("http")
 async def first_login_password_change(request: Request,call_next):
-    if request.cookies.get("catatriage_session") and not request.url.path.startswith(("/static/","/login","/logout")):
+    if request.cookies.get("catatriage_session") and not request.url.path.startswith(("/static/","/login","/logout","/api/mobile/")):
         user=read_session(request)
         if user and user.get("must_change"): return RedirectResponse("/login/doctor/password",status_code=303)
-    return await call_next(request)
+    response=await call_next(request)
+    if request.url.path.startswith('/api/mobile/'):
+        response.headers['Cache-Control']='no-store'
+        response.headers['X-Content-Type-Options']='nosniff'
+    return response
 
 
 def ensure_csrf(request: Request) -> str:
@@ -175,6 +181,8 @@ def render(request: Request, name: str, **context) -> HTMLResponse:
 
 @app.exception_handler(HTTPException)
 async def http_error(request: Request, exc: HTTPException):
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"error": str(exc.detail)}, status_code=exc.status_code, headers={"Cache-Control":"no-store"})
     if exc.status_code == 401:
         return redirect_login(request.url.path)
     if request.url.path.startswith("/api/"):
@@ -184,6 +192,8 @@ async def http_error(request: Request, exc: HTTPException):
 
 @app.exception_handler(ImageValidationError)
 async def invalid_image_error(request: Request, exc: ImageValidationError):
+    if request.url.path.startswith("/api/mobile/"):
+        return JSONResponse({"error":str(exc)},status_code=400)
     return render(request,"error.html",response_status=400,status_code=400,message=str(exc))
 
 
@@ -197,6 +207,22 @@ def health() -> dict:
             "persistent_database":"supabase_postgres" if cloud_database.enabled() else "local_sqlite",
             "real_multidata_available": (ROOT / "models" / "cataract_grade_multidata_real" / "best_model.pt").exists(),
             "real_fusion_available": (ROOT / "models" / "clinical_fusion_catscreen_real" / "best_model.pt").exists()}
+
+
+@app.get('/android',response_class=HTMLResponse)
+def android_download_page(request:Request):
+    manifest=ROOT/'output/android/release.json'
+    if not manifest.exists(): raise HTTPException(404,'Android release is being prepared.')
+    release=json.loads(manifest.read_text())
+    return render(request,'android.html',release=release)
+
+
+@app.get('/downloads/CataTriage-Doctor-1.0.0.apk')
+def android_apk():
+    from fastapi.responses import FileResponse
+    artifact=ROOT/'output/android/CataTriage-Doctor-1.0.0.apk'
+    if not artifact.exists(): raise HTTPException(404,'Android APK is being prepared.')
+    return FileResponse(artifact,media_type='application/vnd.android.package-archive',filename=artifact.name,headers={'Cache-Control':'public,max-age=3600','X-Content-Type-Options':'nosniff'})
 
 
 @app.get("/login", response_class=HTMLResponse)

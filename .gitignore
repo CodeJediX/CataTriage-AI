@@ -2,3 +2,8 @@ deployment/demo_app/data/
 .env*
 __pycache__/
 *.pyc
+android/.gradle/
+android/**/build/
+android/local.properties
+*.jks
+signing.properties

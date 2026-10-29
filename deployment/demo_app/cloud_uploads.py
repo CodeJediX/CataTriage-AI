@@ -16,22 +16,26 @@ def _user(request):
     from .main import require_user, verify_csrf
     if not cloud_database.enabled(): raise HTTPException(404,"Cloud uploads are disabled.")
     user=require_user(request)
+    if request.url.path.startswith('/api/mobile/'):
+        from .mobile_api import doctor
+        doctor(request)
     verify_csrf(request,request.headers.get("X-CSRF-Token", ""))
     return user
 
 
 @router.post("/uploads/prepare")
+@router.post("/api/mobile/uploads/prepare")
 async def prepare(request:Request):
     from .hospital import require_assignment
     user=_user(request)
     data=await request.json()
     action=data.get("action",""); target=str(data.get("target", "")); field=data.get("field","")
-    allowed={"/intake":{"left_images","right_images","unknown_images"},"/admin/doctors":{"profile_image"},
+    allowed={"/intake":{"left_images","right_images","unknown_images"},"/api/mobile/intake":{"left_images","right_images","unknown_images"},"/admin/doctors":{"profile_image"},
              "/support/quality-check":{"image"},"/real-lab/fusion":{"image"},"/api/analyze":{"image"}}
     if action.startswith("/cases/") and action.endswith("/analysis"):
         if target!=action.split("/")[2]: raise HTTPException(400,"Image target does not match this case.")
         require_assignment(user,target); allowed[action]={"image"}
-    elif action=="/intake":
+    elif action in {"/intake","/api/mobile/intake"}:
         if user["r"]=="admin": raise HTTPException(403,"Clinical role required.")
         require_assignment(user,target)
     elif action=="/admin/doctors":
@@ -52,6 +56,7 @@ async def prepare(request:Request):
 
 
 @router.post("/uploads/{identifier}/chunks/{index}")
+@router.post("/api/mobile/uploads/{identifier}/chunks/{index}")
 async def chunk(request:Request,identifier:str,index:int):
     user=_user(request)
     payload=await request.body()

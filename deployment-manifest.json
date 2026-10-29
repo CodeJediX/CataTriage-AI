@@ -21,7 +21,7 @@
   },
   {
     "path": "deployment/demo_app/cloud_uploads.py",
-    "sha256": "262415554f7f1c181d34def7cb10b6d8300141fb2017c6cfb46427cd85c4ad5d"
+    "sha256": "733c70cf6ad7858309e7b95099a319cd63d11cc7156b6c7d875710ed28dfe98c"
   },
   {
     "path": "deployment/demo_app/communications.py",
@@ -52,8 +52,16 @@
     "sha256": "4ecf7f45dc1108f8d1a533df6da45b70cb5f1059b85d48f01b54e5f8ee16afff"
   },
   {
+    "path": "deployment/demo_app/lazy_synthetic.py",
+    "sha256": "41050be9ff036e85f74d46758d0afe0dd09d9af36a49b4ae2a1a69781da331bf"
+  },
+  {
     "path": "deployment/demo_app/main.py",
-    "sha256": "a98e528c6ace3d6ffbe683d946ce8fe0de5606a94f458dcdd6e0911b0b41e8fe"
+    "sha256": "723810e0b22647a8c1d9b7bb79d4fcec30edadebc5b203f3280efb657e0ba31b"
+  },
+  {
+    "path": "deployment/demo_app/mobile_api.py",
+    "sha256": "f17677f667a0f42772d7c625b2b8af7cb37db4a6093181c486298b469d6eef63"
   },
   {
     "path": "deployment/demo_app/model_provider.py",
@@ -82,6 +90,10 @@
   {
     "path": "deployment/demo_app/__init__.py",
     "sha256": "9724d32bccf255a2b528f09ded3c0b623eb52f61bc285523f367783de0cd7fa7"
+  },
+  {
+    "path": "deployment/demo_app/static/android.css",
+    "sha256": "9ad70d9802b09569fe19aeb416367707ab07183b2dadd3ad9eafe3ff7b86ae83"
   },
   {
     "path": "deployment/demo_app/static/app-extra.css",
@@ -134,6 +146,10 @@
   {
     "path": "deployment/demo_app/templates/admin.html",
     "sha256": "041bca0f55806ddaa2c8d0d0adc02f16b67287f32393a6328e44e6fa3e37ee8c"
+  },
+  {
+    "path": "deployment/demo_app/templates/android.html",
+    "sha256": "797caaaee39c85730e5a9ab9ccf571176305fa846bc0a929c7331256dcede84d"
   },
   {
     "path": "deployment/demo_app/templates/audit.html",
@@ -302,6 +318,122 @@
   {
     "path": "docs/CLINICAL_PLANNING_UPDATE.md",
     "sha256": "1433cd8ddd833f868b8d49d4a0f6d7a4f333c3fb272eda5d5f77de3108355395"
+  },
+  {
+    "path": "tools/build_android.ps1",
+    "sha256": "3e259996345bcf497af48be4c4bfbb9913a5e2b4d6baf4b4b183984596c7de59"
+  },
+  {
+    "path": "tools/prepare_android_signing.py",
+    "sha256": "a5cdc7038c029e5a93e46b29b9db54fced4416e29dd3a5ebd0a5884e68b81156"
+  },
+  {
+    "path": "tools/serve_android_qa.py",
+    "sha256": "226c35358ec201222d09897fa72703ab96ecacf16c29e1a02c47800f4809afc6"
+  },
+  {
+    "path": "android/.gitignore",
+    "sha256": "c1d7268843d254068b5b88d4900dd2d1a7f36d569102058b5654aba0f88ecdef"
+  },
+  {
+    "path": "android/build.gradle",
+    "sha256": "8ebf0602839be8fd4c06f07a93e45da6b4a04444fa1b38df8b9def9c1b5c8032"
+  },
+  {
+    "path": "android/gradle.properties",
+    "sha256": "7b347a97227a32c3a4bf5c15405762aa85bc06f97c27920ba3ff641c368b9bca"
+  },
+  {
+    "path": "android/gradlew",
+    "sha256": "a3648413b47ef77af21d5ebc36c687c7d103aaef3e17f33de7d4f080a6f300a3"
+  },
+  {
+    "path": "android/gradlew.bat",
+    "sha256": "57931b17dd228e5c24dac90e815d0bf82477e831a4618dfab4136f5446b42a9f"
+  },
+  {
+    "path": "android/README.md",
+    "sha256": "1405a58b8b4d1e0f821f0284f0a1d385ac89ec42e4de35908ebb21e149cab5df"
+  },
+  {
+    "path": "android/settings.gradle",
+    "sha256": "93a82b259f3a7d8e84b5618a56ff884676ef91b9020524508ebb229772b8dfdd"
+  },
+  {
+    "path": "android/app/build.gradle",
+    "sha256": "aec96e0c8f80c2001cc1f4c62ec789d9b58fdaf67753ace7ea2c073e1dc0f5de"
+  },
+  {
+    "path": "android/app/src/androidTest/AndroidManifest.xml",
+    "sha256": "d3183371890c0c3e8aea8c029499c682c7a9a9828a1e251a264be25a932c30ae"
+  },
+  {
+    "path": "android/app/src/androidTest/java/com/catatriage/doctor/DoctorSmokeTest.java",
+    "sha256": "31754fd87d66c3707d3b4098b2ec46f00995d18f5ac7feb567f9c8d3153a5c46"
+  },
+  {
+    "path": "android/app/src/main/AndroidManifest.xml",
+    "sha256": "b387d1305517fe24a78bc695fd0a678da67df05acbab4820646c97d9440abd6a"
+  },
+  {
+    "path": "android/app/src/main/java/com/catatriage/doctor/Api.java",
+    "sha256": "60b8e96d04aae6e3510690bf5ead3004e80e0dd3e7d97c876b0a9777de46b39a"
+  },
+  {
+    "path": "android/app/src/main/java/com/catatriage/doctor/CaptureProvider.java",
+    "sha256": "3f93c83031b823494fda7bedc5043a87baf242ee7c3fa3d21562f6ed38f77a94"
+  },
+  {
+    "path": "android/app/src/main/java/com/catatriage/doctor/IrisView.java",
+    "sha256": "350ba25271588450d3710f214029c08f3bf7b14ac9f2a1fd88c30df3f7ac2e40"
+  },
+  {
+    "path": "android/app/src/main/java/com/catatriage/doctor/MainActivity.java",
+    "sha256": "8a42c691ce0215fb47ac21e125d11ba0d25229f3b2db6f7449c84055670bf2cd"
+  },
+  {
+    "path": "android/app/src/main/java/com/catatriage/doctor/ReportPdf.java",
+    "sha256": "743bb60b175170d495b9a04b9d351808f4abdd7fd7f64c60907b5bf15b5f3c87"
+  },
+  {
+    "path": "android/app/src/main/java/com/catatriage/doctor/SessionVault.java",
+    "sha256": "98ab399d80e66116c8883c0eda244d1c8fe2dbb8f6b3216e5b1d891f555c4edb"
+  },
+  {
+    "path": "android/app/src/main/res/drawable-nodpi/brand_logo.png",
+    "sha256": "6cea101527f6095e69da3cf7cd7ff358f456fe592773fc9152508bb87e41e66e"
+  },
+  {
+    "path": "android/app/src/main/res/values/strings.xml",
+    "sha256": "993838b6643c9c2c318016b2bc8ffb75c5d52009d7e6f91179dfc523994ea18f"
+  },
+  {
+    "path": "android/app/src/main/res/values/styles.xml",
+    "sha256": "0269d58f39011ef726687cf3a4042978cf1aa2298cc852945540c762109f280c"
+  },
+  {
+    "path": "android/app/src/main/res/xml/data_extraction_rules.xml",
+    "sha256": "f50148eab9e607a1d41b41ab1a6832353af0cb98c5fb4e2ca6364942cfea5969"
+  },
+  {
+    "path": "android/app/src/qa/AndroidManifest.xml",
+    "sha256": "15035f7ac07c6f660a41e40e53a73385c109b53def008724a1bb0cc61cd80cd9"
+  },
+  {
+    "path": "android/gradle/wrapper/gradle-wrapper.jar",
+    "sha256": "2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046"
+  },
+  {
+    "path": "android/gradle/wrapper/gradle-wrapper.properties",
+    "sha256": "d7010368a34c1c06df2bae1a85d8b24c39b2499c74ac892fc7e66d005dbd7b8a"
+  },
+  {
+    "path": "output/android/CataTriage-Doctor-1.0.0.apk",
+    "sha256": "7d166a30a75ff3be8d45469bdbca860caa0d549e01457d22ec7ed864243959b0"
+  },
+  {
+    "path": "output/android/release.json",
+    "sha256": "0fd0f4e15e076fd094fed996c754edfa80fef14fdc41a8e9287d5549146dac94"
   },
   {
     "path": "reports/model_evaluation_v3/accuracy.png",
