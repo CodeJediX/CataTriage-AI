@@ -27,7 +27,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, Stratifie
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, confusion_matrix, cohen_kappa_score, mean_absolute_error
 from deployment.demo_app.tuned_architectures import tabular_features, tree_probabilities, create_fusion
 from tools.train_real_multidata_model import build_dataset, SEED as ORIGINAL_SEED
-from tools.train_real_catscreen_fusion import locate_release, CatScreenDataset, encode_context, LABEL_MAP, CLASS_NAMES
+from tools.train_real_catscreen_fusion import locate_release, CatScreenDataset, encode_context, LABEL_MAP, CLASS_NAMES,build_training_cache
 
 OUT = ROOT/'models/tuning_20261030'
 SEED = 20261030
@@ -129,7 +129,10 @@ def fusion_data():
     image_dir,files=locate_release();frames={k:pd.read_excel(v) for k,v in files.items()}
     for a,b in (('train','val'),('train','test'),('val','test')):
         assert not set(frames[a].id.astype(str)) & set(frames[b].id.astype(str))
-    cache=Path(r'E:\Eye Project\data sets\CatScreen_Public_Sample\training_cache_512')
+    legacy=Path(r'E:\Eye Project\data sets\CatScreen_Public_Sample\training_cache_512')
+    cache=Path(os.getenv('CATATRIAGE_CATSCREEN_CACHE',str(legacy if legacy.exists() else ROOT/'data_processed/catscreen_training_cache_512')))
+    if not all((cache/str(name)).exists() for f in frames.values() for name in f.filename):
+        cache=build_training_cache(image_dir,frames)
     assert all((cache/str(name)).exists() for f in frames.values() for name in f.filename)
     fingerprints={}
     for split,frame in frames.items():

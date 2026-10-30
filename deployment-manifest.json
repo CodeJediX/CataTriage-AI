@@ -185,7 +185,7 @@
   },
   {
     "path": "deployment/demo_app/templates/admin.html",
-    "sha256": "d15cdec0e80968488ef71a6a06db83acae1cb837f130bf72b4325daf98948e60"
+    "sha256": "0d8edca1a2d199a814d167826e98c6c64954f1f26967507766f363ceb8cb1a4a"
   },
   {
     "path": "deployment/demo_app/templates/admin_month_calendar.html",
@@ -233,7 +233,7 @@
   },
   {
     "path": "deployment/demo_app/templates/doctor_workspace.html",
-    "sha256": "3fd0190ef6477c7861343e2f5a64ab59178abe1f1d013bb319eb28688d03768c"
+    "sha256": "8aacae1426927681e9423dc315ed12a0b7d5f2e9015b0eb16d90e5da64e106d3"
   },
   {
     "path": "deployment/demo_app/templates/error.html",
@@ -289,7 +289,7 @@
   },
   {
     "path": "deployment/demo_app/templates/queue.html",
-    "sha256": "3b7cf67969a59fcb9ee00925dd13a5ccfd2d763945d505ca32b859e3efad7361"
+    "sha256": "d882b32217b668cd1b407690788bf75df7905ef6f027c93f4ce8d94b323a6c1a"
   },
   {
     "path": "deployment/demo_app/templates/real_lab.html",
@@ -332,6 +332,10 @@
     "sha256": "383986cf73052574b7e4a2e8ee11de284baccefed6618beb2600b05a77793d37"
   },
   {
+    "path": "models/cataract_grade_multidata_real/predictions_and_splits.csv",
+    "sha256": "0f380fb7718bd11a84ad130bac0a807479e27adbc72470fbc9c670f7bda28b61"
+  },
+  {
     "path": "models/cataract_grade_multidata_real/test_confusion_matrix.png",
     "sha256": "f1a9b5fa10137be2b29b93ac91f829fc9b5cb091575e584a9d64052c881e61e1"
   },
@@ -366,6 +370,10 @@
   {
     "path": "models/clinical_fusion_catscreen_real/metrics.json",
     "sha256": "97940bab04e46c19ba87bf07b5a38329d0b860ceb7267fb736f6547e4ef48218"
+  },
+  {
+    "path": "models/clinical_fusion_catscreen_real/predictions_and_splits.csv",
+    "sha256": "f0dc1f10837bb65b8b1a2fc3619841987ab8023f73d5a26a9fb69ba978982202"
   },
   {
     "path": "models/clinical_fusion_catscreen_real/test_confusion_matrix.png",
@@ -433,15 +441,15 @@
   },
   {
     "path": "tools/train_real_multidata_model.py",
-    "sha256": "a29530cf96e06b2cb64b7b883dffd0a0295a1a027a5fb5292e81b6f424f2f6fd"
+    "sha256": "bfe7b89022ea0354eaf348a84d0287a97cac4dab1f0543bb22563a9afbdf5dbb"
   },
   {
     "path": "tools/train_real_catscreen_fusion.py",
-    "sha256": "f5a3fa101f0a54aea773c2308dc056be30dae91a3eaf19fe1b1e4ce94a20f881"
+    "sha256": "10b4d3c15beed44db311e8e547428c16d1b0a2a6378a98e05666a5246e4d76bc"
   },
   {
     "path": "tools/tune_real_models_gpu.py",
-    "sha256": "8b64a0a0099fe97b96bc91bffdd1338fddcca87ddf051cd0d8d0d1294b155194"
+    "sha256": "e53acdf820f6e2270096b31f32722ecc4bcd5c9c4958de65603e795887e58cd0"
   },
   {
     "path": "tools/select_grade_blend.py",
@@ -478,6 +486,230 @@
   {
     "path": "requirements-demo.txt",
     "sha256": "a70fa158e8e9a58cc30be041144bc0765827a5d127a71247fa669a8479eac713"
+  },
+  {
+    "path": "requirements-dev.txt",
+    "sha256": "cd1d529270823d5a806809b8b65f97b76bcee632c18448b40a42f193b5cd6c8b"
+  },
+  {
+    "path": "tools/judge_smoke.py",
+    "sha256": "011c059e2e0757bd79eaa1e9b911833a6f2ba3948c713201b9dc1600db321b60"
+  },
+  {
+    "path": "docs/competition/CONFIGURATION.md",
+    "sha256": "9ef13c5f8e5c615a8921d088faa9fb25d38716618b68e825fffb4bb41424fcd5"
+  },
+  {
+    "path": "docs/competition/DATA_PROVENANCE.md",
+    "sha256": "1d053dd41619ca4636f0ff4bda91052d48596b575089cfe6965fb1146956563b"
+  },
+  {
+    "path": "docs/competition/MODEL_CARD.md",
+    "sha256": "dd52205badaa413f8ffe38363cfddfd66d819dfb3b25bdd5cef0556adbdc8223"
+  },
+  {
+    "path": "docs/competition/PROPOSAL_COMPARISON.md",
+    "sha256": "568431b00cc5c3003e8e6c70cd562be469bd57278f7c37bea31304799669365f"
+  },
+  {
+    "path": "docs/competition/REPRODUCIBILITY.md",
+    "sha256": "38cf253cba3c205dd4dcc6c606112143390c613a2bbf12b7e7bc4c87d3db2b82"
+  },
+  {
+    "path": "docs/competition/THIRD_PARTY_NOTICES.md",
+    "sha256": "45a4190cc0981adbadcf9f9f1e517209586ca6f77d2ca4bdcfab33fda86d8f32"
+  },
+  {
+    "path": "docs/competition/VERIFICATION.md",
+    "sha256": "5b98d9c89ab73c9fd9c6c889991c95adfa01135c05b7b500ce84af3e46dfbf9f"
+  },
+  {
+    "path": "docs/competition/assets/admin-workspace.png",
+    "sha256": "6608e2b9d0dda7314d5dfc4afaea34075196086145c54dfe45cdb0aea245cbe8"
+  },
+  {
+    "path": "docs/competition/assets/architecture.png",
+    "sha256": "cc66c621679bf5337a950457a2a5dd246f8c928cb2d55376ef24b620e95746d2"
+  },
+  {
+    "path": "docs/competition/assets/architecture.svg",
+    "sha256": "739b649853547c760ea66525fc432a5ce975e1f8ba7577a556df39ee5f0cd7bb"
+  },
+  {
+    "path": "docs/competition/assets/doctor-workspace.png",
+    "sha256": "e6653f83b6de23d2c2c1d5581bbdbb3f08a93030bb8b892b5be5b1002403a196"
+  },
+  {
+    "path": "docs/competition/assets/repository-banner.svg",
+    "sha256": "cc288c5fdd62d1a09def441b5cc3a6dd474c358b29431546d9a8b5ec2e661c11"
+  },
+  {
+    "path": "docs/competition/assets/support-workspace.png",
+    "sha256": "0653f92b8cb79decd75177322d81b92ec2240eccf096d6a92f1b50d499edafda"
+  },
+  {
+    "path": "docs/submission/Technical_Report.docx",
+    "sha256": "fd856bdd4e6eb448fc9df2904a474fb457f1376c51a0f64f32145275a983cc08"
+  },
+  {
+    "path": "docs/submission/Technical_Report.pdf",
+    "sha256": "52cfc9697abc07ca8ee1f07c2cfa0852076b871dba63600881d7cf012aef1667"
+  },
+  {
+    "path": "docs/submission/Two_Page_Summary.docx",
+    "sha256": "b4ac2fea71a1045d6e0ea7dc8b42c04ebb9af20c9fbd7f0bcdd4c674d353781f"
+  },
+  {
+    "path": "docs/submission/Two_Page_Summary.pdf",
+    "sha256": "240fe2561ff2283738f163a66733cb4a8de8312cd6f4eede8cea486f4a7947ad"
+  },
+  {
+    "path": "tests/conftest.py",
+    "sha256": "ca21382087a0cfe5655e9cc9592c690fa44699d5fc12cad8042c29070a7f6f7f"
+  },
+  {
+    "path": "tests/test_account_management.py",
+    "sha256": "794b655146611d2404e6e7e8925a4e77e26ceb421d310dcb88ae0fa67a5da83d"
+  },
+  {
+    "path": "tests/test_advisory_provider.py",
+    "sha256": "3687723b02efa4e14a6f8b1f240172f7091ffc600e6ad4caea485daace88835a"
+  },
+  {
+    "path": "tests/test_clinical_planning.py",
+    "sha256": "8fb4869841043aa4dde53db7f54cd18a4b27f7f21f1a7d0706dc65093c4a3614"
+  },
+  {
+    "path": "tests/test_demo.py",
+    "sha256": "4fb2ae1b7749d8676e7057c59cd6833a55801ff2ec87760112beb17c4e66eb3f"
+  },
+  {
+    "path": "tests/test_doctor_communications.py",
+    "sha256": "5a3d0c48d2bf7e059467b62f66265b3b96d743c9e0a60588b0983fbe52522e9f"
+  },
+  {
+    "path": "tests/test_eye_summary.py",
+    "sha256": "32e3fa6c49f0441df77cc796236841c1d283abe2657d87f056388204f2a41ee2"
+  },
+  {
+    "path": "tests/test_firebase_mail.py",
+    "sha256": "c1f9c64adf18731a680d12b65cc0d0c9af39a1182865592f652ce643ecd30f00"
+  },
+  {
+    "path": "tests/test_mobile_api.py",
+    "sha256": "2facf3d2b9b9d914a20e4a4ae1509614f522969de3ed779b1a9b4ad26137679a"
+  },
+  {
+    "path": "tests/test_profile_month_planning.py",
+    "sha256": "ff2acffe55279af4a0d82cae176ff290bfb006342a2034de2a36214af2bb69cc"
+  },
+  {
+    "path": "tests/test_surgery_alerts.py",
+    "sha256": "2b6d7cca1ef2dc03ef2c2b5f74e3df7ce77c9c57313eb7592ad2d1e861bf5678"
+  },
+  {
+    "path": "tests/test_tuned_models.py",
+    "sha256": "1ad87a9da6896febf1a740def5c0161cf5b8ef3ca35bfb4eab7bb3b2f1b044cb"
+  },
+  {
+    "path": "tests/test_workspace_assistant.py",
+    "sha256": "d2c192eb71fabf9745cbde715c1c8f607192081ed5500d6cee2ed0481115c122"
+  },
+  {
+    "path": "data_splits/retina_four_class/retina_split_manifest.csv",
+    "sha256": "bfad3c6fe50e30c0c31c8ad8f2c3019420bfedf4a52e1cbc4230f9519b843d15"
+  },
+  {
+    "path": "data_splits/retina_four_class/test.csv",
+    "sha256": "5907dfed6d637005be31c88da9ab4e27f7066ebe53b13a0c4ac901a048d0d7d4"
+  },
+  {
+    "path": "data_splits/retina_four_class/train.csv",
+    "sha256": "ddbab9df05a443536d8cfb5f19d101bd9cdb8b995f8bca8a17df0eff0d0e0d82"
+  },
+  {
+    "path": "data_splits/retina_four_class/validation.csv",
+    "sha256": "ae1d06595e42206b2cc5a4e6512a155547170ffdc39c30796515cc3f11c3295b"
+  },
+  {
+    "path": "src/analyze_duplicates.py",
+    "sha256": "94d589057c6db453413d20237cc090d438915c9abfebb2ab13a582b6c8f75bf0"
+  },
+  {
+    "path": "src/assign_group_ids.py",
+    "sha256": "d5255b8ff3e382d8c11daa9c7f9ff3860367db25e9c8b91ed452d7161bde1cae"
+  },
+  {
+    "path": "src/audit_model1_labels.py",
+    "sha256": "073696da3de88429d8f01f020dfe7d036d755c7fc5f23a27c9e8824c0ece7723"
+  },
+  {
+    "path": "src/build_clean_training_manifest.py",
+    "sha256": "96d85f3bb2533f5401b314516897afd5ead988c2716be3141b588de3eadfa15a"
+  },
+  {
+    "path": "src/build_master_registry.py",
+    "sha256": "c69b36797385c5d4ba4a3f4a9e9f3f5a27482828b1da40ebf23b3dd1161f8e7a"
+  },
+  {
+    "path": "src/create_automatic_20_image_pilot.py",
+    "sha256": "06fbd2ad75534f992a945d03adce9b11af74cead6ed77eb747b727b06a2b3524"
+  },
+  {
+    "path": "src/create_quality_review_sheets.py",
+    "sha256": "7f4438a9e7d98ccca2a9492a95ce8c9df62b5745888e5389b82e814e689722d4"
+  },
+  {
+    "path": "src/create_retina_splits.py",
+    "sha256": "6a4e7c787f16b726eff5f602553e0d82f259888edc154eea7de9013128fece5b"
+  },
+  {
+    "path": "src/finalize_quality_manifest.py",
+    "sha256": "76446fad6ad6e0bde34a67db51c4fee01b08ae9040bf680c45855f22730bf970"
+  },
+  {
+    "path": "src/find_possible_label_files.py",
+    "sha256": "cb36396487e2e3ccfd67adf0aa515589638107c8ce26d825db1f1010b69f3658"
+  },
+  {
+    "path": "src/inspect_grouping_structure.py",
+    "sha256": "5a268468e27010fdebfb99f86509bc5ae89e5b591dff69af4dd57247668c9809"
+  },
+  {
+    "path": "src/inspect_nuclear_manifest_for_locs.py",
+    "sha256": "2de99b01f6bdfd995d9d571f26f59d01407c123b069851269fe0b3097e0ce89f"
+  },
+  {
+    "path": "src/inspect_parent_groups.py",
+    "sha256": "7afc0214f598a5624b3c663dff4a219726f3185466414d254a83da53d0dec735"
+  },
+  {
+    "path": "src/model1_labeling_app.py",
+    "sha256": "1fb11735ffc47bf021ac01a06787cd3f8d2eace0a22c4e5eb817d76c256bbb34"
+  },
+  {
+    "path": "src/prepare_model1_label_sheet.py",
+    "sha256": "7391f536b2b042a636e87d570eb4cb74355e000302c203e85c863e23faf44ae5"
+  },
+  {
+    "path": "src/smoke_test_retina_gpu.py",
+    "sha256": "725dec94f9e4cc01707d779f0f36e54b6c82068b4cb365ee195cefc477761662"
+  },
+  {
+    "path": "src/standardize_model1_images.py",
+    "sha256": "22a1f9697abd0032cdd4f5e6423e84adef6a6dea5827901400b97470a37bc1a7"
+  },
+  {
+    "path": "src/test_retina_efficientnet_v3.py",
+    "sha256": "db170aebb2442b9c6d0c33dca64ab173af55e4621647cef0e05a293e63262f36"
+  },
+  {
+    "path": "src/train_retina_efficientnet.py",
+    "sha256": "b764041171a0fcc9aa93640c23a4f8438bb1d4bc7897b1885fb18a8bbfd95a96"
+  },
+  {
+    "path": "src/validate_images.py",
+    "sha256": "f3db1c1ed58336e10ae5f9da2115c35a302b4e4b93cffea18e6ccab50dad4f56"
   },
   {
     "path": "android/.gitignore",
@@ -676,28 +908,56 @@
     "sha256": "f12b4fe629e1196fbdacdcc803ddcfd8fa7cec01acf9d9eb8c8d1245ea323af5"
   },
   {
+    "path": "output/pdf/cataract_grade_multidata_model_readiness.docx",
+    "sha256": "79b83b431ec054ebebf6fcef5f34827722c96eebdb897c5b330257f6b5415f34"
+  },
+  {
     "path": "output/pdf/cataract_grade_multidata_model_readiness.pdf",
     "sha256": "66ab2513f63580a083dc0c1be96db37af9ab1eacf29f1d0090d7c7f73e9ab095"
+  },
+  {
+    "path": "output/pdf/catatriage_full_agents_and_models_report.docx",
+    "sha256": "85247728d18ad45ba8c6d0309db5df4d3d11fd10c19fb4c5990cf94df8c887e0"
   },
   {
     "path": "output/pdf/catatriage_full_agents_and_models_report.pdf",
     "sha256": "91fb5d376b98cd29caf54fccfe42e8c0c47e38412aaf47482c739d5a4a4f31e5"
   },
   {
+    "path": "output/pdf/clinical_fusion_model_readiness.docx",
+    "sha256": "1f632f74d84ea4b89c38e6e32fce6547bf2bc20fca50c7fe915b7af115cc41be"
+  },
+  {
     "path": "output/pdf/clinical_fusion_model_readiness.pdf",
     "sha256": "8983a7aa3f343bdd1fee8bcdc8bfa9461bf54cfc433767003e06e1bf842aa2da"
+  },
+  {
+    "path": "output/pdf/fundus_v3_model_evidence.docx",
+    "sha256": "a2e9d7d034550e35fef5f0d16bee6d541686dfaaa2c71a945c715088d2768b06"
   },
   {
     "path": "output/pdf/fundus_v3_model_evidence.pdf",
     "sha256": "3b1bdc2cc70a6815a5f55a37304dd7ee19784b3f692326f4989c6f826eee7ce0"
   },
   {
+    "path": "output/pdf/real_models_and_agents_evidence.docx",
+    "sha256": "5c4ce18645ce5bddb25c14f0cac2b72de82fa206f65e851038d7ed402f022e4d"
+  },
+  {
     "path": "output/pdf/real_models_and_agents_evidence.pdf",
-    "sha256": "e84641e89c60e086d373eab2c2afe420c10ceeef14704bb11eb28c05f89b4835"
+    "sha256": "7bb5003b5daedd6b8e8a8f1c45d6262ed812a19327b716387a3b1b790b038438"
+  },
+  {
+    "path": "output/pdf/synthetic_cataract_grade_model_evidence.docx",
+    "sha256": "b2b1ed49dda85c49222a03ed7bdf2aa11cd0a3be355331611a3b393f93976974"
   },
   {
     "path": "output/pdf/synthetic_cataract_grade_model_evidence.pdf",
     "sha256": "65eb497f59c66580ccab599a0ff8d282ef7a606ef1cb60ea8839fab3672a462a"
+  },
+  {
+    "path": "output/pdf/synthetic_clinical_fusion_model_evidence.docx",
+    "sha256": "efb1ea3541cdd5305305af3ab7fabea96259b531270c86b985c2dc7682fcd0d2"
   },
   {
     "path": "output/pdf/synthetic_clinical_fusion_model_evidence.pdf",

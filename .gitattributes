@@ -3,3 +3,5 @@
 *.pt binary
 *.pth binary
 *.png binary
+*.docx binary
+*.apk binary

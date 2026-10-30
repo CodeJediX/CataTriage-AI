@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import random
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -18,9 +19,9 @@ from torchvision.transforms import v2
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = Path(r"E:\Eye Project\data sets\CatScreen_Public_Sample")
+DATA_ROOT = Path(os.getenv('CATATRIAGE_CATSCREEN_DIR',r"E:\Eye Project\data sets\CatScreen_Public_Sample"))
 OUTPUT = ROOT / "models" / "clinical_fusion_catscreen_real"
-CACHE_ROOT = DATA_ROOT / "training_cache_512"
+CACHE_ROOT = Path(os.getenv('CATATRIAGE_CATSCREEN_CACHE',str(ROOT/'data_processed/catscreen_training_cache_512')))
 SEED = 20261026
 CLASS_NAMES = ["normal", "cataract", "other"]
 LABEL_MAP = {name: index for index, name in enumerate(CLASS_NAMES)}

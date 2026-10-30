@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -24,11 +25,11 @@ from torch.utils.data import DataLoader, TensorDataset
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = Path(
+SOURCE = Path(os.getenv('CATATRIAGE_CLINICAL_DATA',
     r"E:\Eye Project\data sets\Eye_Datasets_Organized\01_multimodal_collections"
     r"\catatriage_ai\02_Clinical_Tabular\01_Cataract_Risk_and_Grading"
     r"\10.5061_dryad.gt410__new PONE-D-15-08786 original data set.xls"
-)
+))
 OUTPUT = ROOT / "models" / "cataract_grade_multidata_real"
 SEED = 20261026
 LABELS = ["grade 0", "grade 1", "grade 2", "grade 3+"]
