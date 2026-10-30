@@ -581,7 +581,7 @@
   },
   {
     "path": "tests/test_demo.py",
-    "sha256": "4fb2ae1b7749d8676e7057c59cd6833a55801ff2ec87760112beb17c4e66eb3f"
+    "sha256": "e1bd1601887832b35eed36f2a87b8720ca4da7d006b3ab3b0a3624f8450bfc9f"
   },
   {
     "path": "tests/test_doctor_communications.py",

@@ -528,4 +528,3 @@ def test_doctor_interface_hides_removed_labs_and_blocks_unassigned_review(client
     assert "/real-lab" not in nav and "/simulation" not in nav and 'href="/model"' not in nav
     assert client.get("/real-lab",follow_redirects=False).status_code==303
     assert client.get("/doctor/review/DEMO-0002").status_code==403
-
