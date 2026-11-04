@@ -65,7 +65,7 @@
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "a090f6946ec564ec1661ef68339e70508beb904702de4a8473e2ba84fc92cb0b"
+    "sha256": "a261c1eb430c27a04bd89aed71b0b9b8846d3764837569ffbf4b56614ec57240"
   },
   {
     "path": "deployment/demo_app/mobile_api.py",
@@ -153,7 +153,7 @@
   },
   {
     "path": "deployment/demo_app/static/identity.css",
-    "sha256": "f53666f6c34cd6a7bca197c060d0e2c1f2cbd455c14849cfeff445ffde3f406d"
+    "sha256": "8552867ff38074d0379ca27be0e51e741745f5fe7aa77dce7d425281f51f2cab"
   },
   {
     "path": "deployment/demo_app/static/responsive.css",
@@ -969,10 +969,14 @@
   },
   {
     "path": "deployment/demo_app/templates/competition_access.html",
-    "sha256": "acda14c68a5dfbbb624807897eb03cd986301d542781a2aa95894f134d9a9924"
+    "sha256": "f76c788e0ae6d78959ad00100d36c653995e30dbacf67f18148d79912605fd5c"
   },
   {
     "path": "tests/test_judge_access.py",
     "sha256": "d713b68750f46947137097295d4a2a8fd046640f0d4574750c2e4a0f0f67b360"
+  },
+  {
+    "path": "deployment/demo_app/static/competition-access.js",
+    "sha256": "63c7badf94ab18ddbdeadc14f99a34dd607efee13aace865467371d7f8825f0e"
   }
 ]

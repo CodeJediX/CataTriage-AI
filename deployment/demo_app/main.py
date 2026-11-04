@@ -256,7 +256,7 @@ def unlock_judge_accounts(request: Request, csrf: str = Form(...), access_code: 
     verify_csrf(request, csrf)
     if not hmac.compare_digest(access_code.strip().encode(), judge_access.access_code(key).encode()):
         return render(request, "login.html", next_path="/", error=None, portal=None,
-                      judge_enabled=True, judge_error="That access code did not match.", response_status=403)
+                      judge_enabled=True, judge_error="This invitation did not match. Open the link from the project team.", response_status=403)
     response = RedirectResponse("/login#competition-access", status_code=303)
     response.set_cookie(judge_access.COOKIE, judge_access.disclosure_token(key), httponly=True,
                         samesite="strict", secure=request.url.scheme == "https",
