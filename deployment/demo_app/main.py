@@ -21,6 +21,10 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Resp
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from . import judge_demo
+
+judge_demo.configure()
+
 from .database import DB_PATH, DOCTOR_IMAGE_DIR, UPLOAD_DIR, audit, connection, hash_password, initialize_database, now_iso, reset_database, verify_password
 from .model_provider import ImageValidationError, MODEL_ID, provider, validate_image_bytes
 from .real_models import real_provider
@@ -46,14 +50,21 @@ REPORT_DIR = ROOT / "reports" / "model_evaluation_v3"
 EVIDENCE_DIR = ROOT / "output" / "pdf"
 TEMPLATE_DIR = APP_DIR / "templates"
 STATIC_DIR = APP_DIR / "static"
-SECRET_PATH = APP_DIR / "data" / ".session_secret"
+SECRET_PATH = (DB_PATH.parent if judge_demo.ENABLED else APP_DIR / "data") / ".session_secret"
 MAX_AGE_SECONDS = 8 * 60 * 60
-load_local_config()
+JUDGE_URL = os.getenv("CATATRIAGE_JUDGE_URL", "").rstrip("/")
+if not judge_demo.ENABLED:
+    load_local_config()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     initialize_database()
     initialize_role_databases()
+    if judge_demo.ENABLED:
+        with connection() as con:
+            con.execute("UPDATE doctor_profiles SET mobile='', whatsapp_phone=''")
+        with role_connection(DOCTOR_DB_PATH) as con:
+            con.execute("UPDATE patient_profiles SET phone='', address=''")
     sync_doctor_directory()
     yield
 
@@ -133,6 +144,12 @@ def read_session(request: Request) -> dict | None:
 
 @app.middleware("http")
 async def first_login_password_change(request: Request,call_next):
+    if judge_demo.ENABLED and request.method not in {"GET", "HEAD", "OPTIONS"}:
+        if request.method != "POST" or request.url.path not in judge_demo.ALLOWED_POSTS:
+            message = "The competition workspace is for review. Sample records and account details cannot be changed."
+            if request.url.path.startswith("/api/"):
+                return JSONResponse({"error": message}, status_code=403)
+            return render(request, "error.html", response_status=403, status_code=403, message=message)
     if request.cookies.get("catatriage_session") and not request.url.path.startswith(("/static/","/login","/logout","/api/mobile/")):
         user=read_session(request)
         if user and user.get("must_change"): return RedirectResponse("/login/doctor/password",status_code=303)
@@ -174,7 +191,8 @@ def render(request: Request, name: str, **context) -> HTMLResponse:
     pending_count = len(surgery_alerts.for_request(request, user)) if user and not auth_page else 0
     response = templates.TemplateResponse(request, name, {"user": user, "csrf": csrf, "today": date.today(),
         "pending_surgery_count":pending_count,
-        "auth_page":auth_page,
+        "auth_page":auth_page, "judge_mode":judge_demo.ENABLED, "judge_url":JUDGE_URL,
+        "judge_allowed_posts":judge_demo.ALLOWED_POSTS,
         "google_enabled":google_enabled(), "google_pending":request.query_params.get("google_status")=="pending",
         "hosted":os.getenv("CATATRIAGE_HOSTED")=="true", "ephemeral":os.getenv("CATATRIAGE_EPHEMERAL")=="true",
         "cloud_database":cloud_database.enabled(), **context}, status_code=response_status)
@@ -237,7 +255,18 @@ def android_apk(filename:str):
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, next: str = "/"):
+    if judge_demo.ENABLED:
+        return render(request, "judge_access.html", accounts=judge_demo.ACCOUNTS)
     return render(request, "login.html", next_path=next, error=None, portal=None)
+
+
+@app.get("/login/judges", response_class=HTMLResponse)
+def judge_access(request: Request):
+    if judge_demo.ENABLED:
+        return render(request, "judge_access.html", accounts=judge_demo.ACCOUNTS)
+    if JUDGE_URL:
+        return RedirectResponse(JUDGE_URL, status_code=303)
+    raise HTTPException(404, "Competition judge access is not configured.")
 
 
 @app.get("/login/{portal}", response_class=HTMLResponse)
@@ -638,7 +667,8 @@ def support_dashboard(request: Request):
         registrations = con.execute("SELECT * FROM registrations ORDER BY id DESC LIMIT 12").fetchall()
         checks = con.execute("SELECT * FROM quality_checks ORDER BY id DESC LIMIT 12").fetchall()
         tickets = con.execute("SELECT * FROM support_tickets ORDER BY id DESC LIMIT 8").fetchall()
-    return render(request, "support.html", page="support", registrations=registrations, checks=checks, tickets=tickets)
+    return render(request, "support.html", page="support", registrations=registrations, checks=checks, tickets=tickets,
+                  quality_preview=getattr(request.state, "quality_preview", None))
 
 
 @app.post("/support/quality-check")
@@ -650,6 +680,9 @@ async def support_quality_check(request: Request, case_id: str = Form(...), imag
     width, height = int(meta["width"]), int(meta["height"])
     quality = "pass" if min(width, height) >= 224 else "review"
     feedback = "Technical checks passed; clinical image quality still requires clinician review." if quality == "pass" else "Resolution is below 224 px on one axis; recapture recommended."
+    if judge_demo.ENABLED:
+        request.state.quality_preview = {"format": meta["format"], "width": width, "height": height, "feedback": feedback}
+        return support_dashboard(request)
     with role_connection(TECHNICIAN_DB_PATH) as con:
         con.execute("INSERT INTO quality_checks(case_id,filename,format,width,height,quality_status,feedback,checked_by,checked_at) VALUES(?,?,?,?,?,?,?,?,?)",
                     (case_id.strip().upper(),Path(image.filename or "upload").name,meta["format"],width,height,quality,feedback,user["u"],datetime.now().isoformat(timespec="seconds")))

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Competition judge access · CataTriage AI{% endblock %}
+{% block content %}
+<section class="judge-access" aria-labelledby="judge-title">
+  <header class="judge-header">
+    <img src="/static/catatriage-logo.png" alt="CataTriage AI" width="92" height="92">
+    <div>
+      <span class="judge-kicker">CataTriage AI / Competition demo</span>
+      <h1 id="judge-title">Judge access</h1>
+      <p>Open a role to see how the team handles intake, clinical review and scheduling.</p>
+    </div>
+  </header>
+  <div class="judge-grid">
+    {% for account in accounts %}
+    <article class="judge-role" aria-labelledby="judge-{{ account.role }}">
+      <span class="judge-index">0{{ loop.index }} / ROLE ACCESS</span>
+      <h2 id="judge-{{ account.role }}">{{ account.label }}</h2>
+      <p>{{ account.summary }}</p>
+      <dl class="judge-credentials">
+        <div><dt>Username</dt><dd><code>{{ account.username }}</code></dd></div>
+        <div><dt>Password</dt><dd><code>{{ account.password }}</code></dd></div>
+      </dl>
+      <form action="/login" method="post">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <input type="hidden" name="portal" value="{{ account.role }}">
+        <input type="hidden" name="username" value="{{ account.username }}">
+        <input type="hidden" name="password" value="{{ account.password }}">
+        <input type="hidden" name="next_path" value="{{ account.target }}">
+        <button class="button primary" type="submit">Open {{ account.label | lower }} <span aria-hidden="true">↗</span></button>
+      </form>
+      <a class="judge-manual" href="/login/{{ account.role }}">Sign in manually<span class="judge-sr"> as {{ account.label }}</span></a>
+    </article>
+    {% endfor %}
+  </div>
+  <footer class="judge-footer">
+    <div><strong>Fictional workspace</strong><p>Sample records are read-only. The model lab and image quality check accept test inputs without saving them.</p></div>
+    <div><strong>Switch roles anytime</strong><p>Return to Judge access and open another dashboard.</p></div>
+  </footer>
+</section>
+{% endblock %}

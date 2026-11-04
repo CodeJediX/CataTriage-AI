@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="/static/simulation.css">
   <link rel="stylesheet" href="/static/hospital.css?v=20261029-surgery-bell">
   <link rel="stylesheet" href="/static/identity.css?v=20261027">
+  {% if judge_mode or judge_url %}<link rel="stylesheet" href="/static/judge-access.css">{% endif %}
+  {% if judge_mode and not auth_page %}<script src="/static/judge-review.js" defer></script>{% endif %}
   <script src="/static/cloud-uploads.js" defer></script>
   <script src="/static/app.js" defer></script>
   {% if user and not auth_page %}<script src="/static/surgery-alerts.js?v=20261029" defer></script><script src="/static/workspace-assistant.js?v=20261030" defer></script><link rel="stylesheet" href="/static/workspace-assistant.css?v=20261030">{% endif %}
@@ -46,6 +48,7 @@
 </aside>
 {% endif %}
 <main class="{{ 'shell' if user and not auth_page else 'auth-shell' }}">
+  {% if judge_mode and user and not auth_page %}<div class="notice judge-notice" data-judge-posts="{{ judge_allowed_posts | join(' ') }}"><div><strong>Competition demo</strong><span>Fictional records · Review only</span></div><a href="/login/judges">Switch role</a></div>{% endif %}
   {% if hosted and not auth_page %}<div class="notice hosted-notice"><strong>Education demo.</strong> {% if cloud_database %}Records and original uploads are stored privately in Supabase.{% elif ephemeral %}Records and uploads reset when this service restarts or sleeps.{% else %}This link is available while the host computer and public tunnel are running.{% endif %} Use fictional patient information.</div>{% endif %}
   {% if user and not auth_page %}<div class="safety-strip"><strong>RESEARCH PROTOTYPE</strong><span>Models use public retrospective research datasets. Demo cases stay fictional. Not for diagnosis, treatment, or patient care.</span></div>{% endif %}
   {% block content %}{% endblock %}

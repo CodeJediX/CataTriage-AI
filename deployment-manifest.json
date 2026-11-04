@@ -60,12 +60,16 @@
     "sha256": "4ecf7f45dc1108f8d1a533df6da45b70cb5f1059b85d48f01b54e5f8ee16afff"
   },
   {
+    "path": "deployment/demo_app/judge_demo.py",
+    "sha256": "2ae62e5f321e50955ecad5364721a77a283a6984c1bd69d81de7ac51c35d94cf"
+  },
+  {
     "path": "deployment/demo_app/lazy_synthetic.py",
     "sha256": "41050be9ff036e85f74d46758d0afe0dd09d9af36a49b4ae2a1a69781da331bf"
   },
   {
     "path": "deployment/demo_app/main.py",
-    "sha256": "dfbbabf083ee0ce83ad6e996bcee12fd9527627129b107b9e8b4eb8e94b61420"
+    "sha256": "0d6a96d45cf369f7c30507b1d662cef048b49254c636e3b042733adeaab26795"
   },
   {
     "path": "deployment/demo_app/mobile_api.py",
@@ -156,6 +160,14 @@
     "sha256": "34b7219f413b61acaa9b2d5005124c5ea28a721c1b1639cfa3b1128c19c83827"
   },
   {
+    "path": "deployment/demo_app/static/judge-access.css",
+    "sha256": "d1370ff057d29a95ef90a4f4ace82c778c49f7afb403b7bb70db460e38be27ae"
+  },
+  {
+    "path": "deployment/demo_app/static/judge-review.js",
+    "sha256": "67f61fe348f7fc60d1babd6e580d5d0ed806fbd983c4d0f8b61051740cbf8ffe"
+  },
+  {
     "path": "deployment/demo_app/static/responsive.css",
     "sha256": "344f771352a2073106ac7a0653a84301b598b1da97aeb2bf5955ac2418003b08"
   },
@@ -201,7 +213,7 @@
   },
   {
     "path": "deployment/demo_app/templates/base.html",
-    "sha256": "cd8824c8b8d911705f314ac15817e535d439f8c80dc9bca994b09f14dd038230"
+    "sha256": "d338b5a6ed6905beb1338074a9841998e26a3745ef415cd6597fa3e98541fa73"
   },
   {
     "path": "deployment/demo_app/templates/calendar.html",
@@ -248,12 +260,16 @@
     "sha256": "058b25151a5f68485d903cee01211bed92780a4b90b83eac50a873949db7767a"
   },
   {
+    "path": "deployment/demo_app/templates/judge_access.html",
+    "sha256": "d782b5994412dc2a67e24349aed80396597c7a83f2986a769c5d1d861b7e5822"
+  },
+  {
     "path": "deployment/demo_app/templates/leave.html",
     "sha256": "c9982e88e115922b39a94c11c722ecb344da7a2e3ea05c1a3fa3c61680bbe469"
   },
   {
     "path": "deployment/demo_app/templates/login.html",
-    "sha256": "44b3f017029e2ed5b1d31d0a5c5b102c775f6fcfe5cdb774a84b09ac855b10fa"
+    "sha256": "ee1ce3d5567061c4002a52b0d9473f70d1df5da9bdd0722c3476cb0b8b36a82d"
   },
   {
     "path": "deployment/demo_app/templates/mailbox.html",
@@ -305,7 +321,7 @@
   },
   {
     "path": "deployment/demo_app/templates/support.html",
-    "sha256": "9962529ec2cad62d87e25561854a3a65c077c79d34bc8c15886bab5df2294615"
+    "sha256": "167e3bd2cfdb86b147bd345926bd34809e834ab8a040e0ca4a2f79a5ac52bf9b"
   },
   {
     "path": "agents/workflow.py",
