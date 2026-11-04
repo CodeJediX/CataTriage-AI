@@ -10,9 +10,7 @@
   <link rel="stylesheet" href="/static/app-extra.css">
   <link rel="stylesheet" href="/static/simulation.css">
   <link rel="stylesheet" href="/static/hospital.css?v=20261029-surgery-bell">
-  <link rel="stylesheet" href="/static/identity.css?v=20261027">
-  {% if judge_mode or judge_url %}<link rel="stylesheet" href="/static/judge-access.css">{% endif %}
-  {% if judge_mode and not auth_page %}<script src="/static/judge-review.js" defer></script>{% endif %}
+  <link rel="stylesheet" href="/static/identity.css?v=20261104-competition">
   <script src="/static/cloud-uploads.js" defer></script>
   <script src="/static/app.js" defer></script>
   {% if user and not auth_page %}<script src="/static/surgery-alerts.js?v=20261029" defer></script><script src="/static/workspace-assistant.js?v=20261030" defer></script><link rel="stylesheet" href="/static/workspace-assistant.css?v=20261030">{% endif %}
@@ -43,12 +41,12 @@
     <span class="role-chip">{{ user.r }}</span>
     <strong>{{ user.n }}</strong><small>{{ user.login_name or user.u }}</small>
     {% if user.r=='doctor' %}<a class="account-link" href="/doctor/profile">My profile &amp; security</a>{% endif %}
+    {% if user.u in ["judge.admin","judge.doctor","judge.tech"] %}<a class="account-link" href="/login#competition-access">Switch role</a>{% endif %}
     <form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="link-button">Sign out</button></form>
   </div>
 </aside>
 {% endif %}
 <main class="{{ 'shell' if user and not auth_page else 'auth-shell' }}">
-  {% if judge_mode and user and not auth_page %}<div class="notice judge-notice" data-judge-posts="{{ judge_allowed_posts | join(' ') }}"><div><strong>Competition demo</strong><span>Fictional records · Review only</span></div><a href="/login/judges">Switch role</a></div>{% endif %}
   {% if hosted and not auth_page %}<div class="notice hosted-notice"><strong>Education demo.</strong> {% if cloud_database %}Records and original uploads are stored privately in Supabase.{% elif ephemeral %}Records and uploads reset when this service restarts or sleeps.{% else %}This link is available while the host computer and public tunnel are running.{% endif %} Use fictional patient information.</div>{% endif %}
   {% if user and not auth_page %}<div class="safety-strip"><strong>RESEARCH PROTOTYPE</strong><span>Models use public retrospective research datasets. Demo cases stay fictional. Not for diagnosis, treatment, or patient care.</span></div>{% endif %}
   {% block content %}{% endblock %}
